@@ -88,6 +88,8 @@ public final class MissingResourcesPatch {
     }
 
     public static int getLegacyIconType(int iconType) {
+        // Cấy máy quét: In tất cả các mã Icon ID mà server yêu cầu ra Logcat
+        android.util.Log.e("RVX_ICON_HUNTER", "Server requested IconType ID: " + iconType);
         return iconType == SETTINGS_CAIRO_ICON_TYPE
                 ? SETTINGS_ICON_TYPE
                 : iconType;
