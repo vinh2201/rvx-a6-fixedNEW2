@@ -88,11 +88,15 @@ public final class MissingResourcesPatch {
     }
 
     public static int getLegacyIconType(int iconType) {
-        // Cấy máy quét: In tất cả các mã Icon ID mà server yêu cầu ra Logcat
-        android.util.Log.e("RVX_ICON_HUNTER", "Server requested IconType ID: " + iconType);
-        return iconType == SETTINGS_CAIRO_ICON_TYPE
-                ? SETTINGS_ICON_TYPE
-                : iconType;
+        switch (iconType) {
+            case 1154: return 406; // Trang chủ (Home)
+            case 1157: return 776; // Shorts
+            case 1155: return 408; // Kênh đăng ký (Subscriptions)
+            case 1156: return 410; // Thư viện / Bạn (Library / You)
+            case 1160: return 181; // Nút Tạo (+)
+            case 1161: return 158; // Thông báo (Notifications)
+            case 1162: return 44;  // Cài đặt (Settings)
+            default:   return iconType;
     }
 
     private static Drawable getFallbackDrawable(Resources resources, boolean preferToolbarIcon) {
