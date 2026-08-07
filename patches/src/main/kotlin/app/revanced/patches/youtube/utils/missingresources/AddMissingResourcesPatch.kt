@@ -1,5 +1,6 @@
 package app.revanced.patches.youtube.utils.missingresources
 
+import app.revanced.patcher.extensions.InstructionExtensions.addInstructions
 import app.revanced.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.revanced.patcher.extensions.InstructionExtensions.getInstruction
 import app.revanced.patcher.patch.bytecodePatch
@@ -205,6 +206,7 @@ val addMissingResourcesPatch = resourcePatch(
         copyResources(
             "addmissingresources",
             ResourceGroup("drawable", "ic_waveform_elements.xml")
+        )
 
         // endregion
 
