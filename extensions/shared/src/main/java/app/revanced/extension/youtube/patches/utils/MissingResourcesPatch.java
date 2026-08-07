@@ -103,6 +103,7 @@ public final class MissingResourcesPatch {
         // ĐẶT MÁY NGHE LÉN Ở ĐÂY: In ra toàn bộ mã IconType mà YouTube đang gọi
         Log.e("KhoaBug_Icon", "YouTube dang goi IconType: " + iconType);
 
+/*
         switch (iconType) {
             case 1154: return 406; // Trang chủ (Home)
             case 1157: return 776; // Shorts
@@ -113,6 +114,11 @@ public final class MissingResourcesPatch {
             case 1162: return 44;  // Cài đặt (Settings)
             default:   return iconType;
         }
+*/
+
+        return iconType == SETTINGS_CAIRO_ICON_TYPE
+                ? SETTINGS_ICON_TYPE
+                : iconType;
     }
 
     private static Drawable getFallbackDrawable(Resources resources, boolean preferToolbarIcon) {
