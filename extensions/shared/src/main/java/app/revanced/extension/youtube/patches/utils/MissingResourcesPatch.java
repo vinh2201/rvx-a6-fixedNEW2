@@ -6,6 +6,8 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 
+import android.util.Log;
+
 @SuppressWarnings("unused")
 public final class MissingResourcesPatch {
     private static final int SETTINGS_ICON_TYPE = 44;
@@ -28,6 +30,16 @@ public final class MissingResourcesPatch {
     }
 
     public static Drawable getDrawable(Context context, int id) {
+        // NGHE LÉN TÊN FILE ẢNH
+        try {
+            if (id != 0) {
+                String resName = context.getResources().getResourceEntryName(id);
+                Log.e("KhoaBug_Resource", "YouTube dang goi ten hinh anh: " + resName + " (ID: " + id + ")");
+            }
+        } catch (Exception e) {
+            // Bỏ qua nếu ID không trỏ tới ảnh hợp lệ
+        }
+
         if (id == 0) {
             return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
         }
@@ -88,6 +100,9 @@ public final class MissingResourcesPatch {
     }
 
     public static int getLegacyIconType(int iconType) {
+        // ĐẶT MÁY NGHE LÉN Ở ĐÂY: In ra toàn bộ mã IconType mà YouTube đang gọi
+        Log.e("KhoaBug_Icon", "YouTube dang goi IconType: " + iconType);
+
         switch (iconType) {
             case 1154: return 406; // Trang chủ (Home)
             case 1157: return 776; // Shorts
