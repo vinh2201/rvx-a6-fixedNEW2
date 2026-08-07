@@ -103,7 +103,6 @@ public final class MissingResourcesPatch {
         // ĐẶT MÁY NGHE LÉN Ở ĐÂY: In ra toàn bộ mã IconType mà YouTube đang gọi
         Log.e("KhoaBug_Icon", "YouTube dang goi IconType: " + iconType);
 
-/*
         switch (iconType) {
             case 1154: return 406; // Trang chủ (Home)
             case 1157: return 776; // Shorts
@@ -114,11 +113,18 @@ public final class MissingResourcesPatch {
             case 1162: return 44;  // Cài đặt (Settings)
             default:   return iconType;
         }
-*/
+    }
 
-        return iconType == SETTINGS_CAIRO_ICON_TYPE
-                ? SETTINGS_ICON_TYPE
-                : iconType;
+    public static boolean isValidDrawable(Context context, int id) {
+        if (id == 0) return false;
+        try {
+            // Kiểm tra xem ID này có thực sự trỏ tới một file ảnh không
+            String type = context.getResources().getResourceTypeName(id);
+            return "drawable".equals(type) || "mipmap".equals(type) || "color".equals(type);
+        } catch (Resources.NotFoundException e) {
+            // Nếu không tìm thấy hoặc là ID ảo ma, trả về false để trạm kiểm lâm tóm lại
+            return false;
+        }
     }
 
     private static Drawable getFallbackDrawable(Resources resources, boolean preferToolbarIcon) {

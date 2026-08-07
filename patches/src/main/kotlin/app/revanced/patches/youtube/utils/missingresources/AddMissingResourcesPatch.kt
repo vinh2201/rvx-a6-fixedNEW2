@@ -55,15 +55,24 @@ private val addMissingResourcesBytecodePatch = bytecodePatch {
 
 private val addMissingResourcesBytecodePatch = bytecodePatch {
     execute {
-        // 1. Nâng cấp hook chống crash bằng file Java của Morphe (thay vì dùng ảnh transparent cứng)
+        // 1. Nâng cấp hook chống crash: Chỉ can thiệp khi ID bị lỗi, còn lại trả về hàm gốc!
         navigationBarGetDrawableFingerprint.methodOrThrow().apply {
-            addInstructions(
+            addInstructionsWithLabels(
                 0,
                 """
+                # Gọi hàm Java kiểm tra xem ID này có phải ảnh hợp lệ không
+                invoke-static {p0, p1}, $EXTENSION_CLASS_DESCRIPTOR->isValidDrawable(Landroid/content/Context;I)Z
+                move-result v0
+                
+                # Nếu v0 = 1 (Hợp lệ), nhảy đến nhãn :original (chạy code gốc của App để load Logo, Avatar)
+                if-eqz v0, :original
+                
+                # Nếu v0 = 0 (Lỗi ID ma), chạy hàm getDrawable fallback của ta để nhét ảnh tàng hình chống crash
                 invoke-static {p0, p1}, $EXTENSION_CLASS_DESCRIPTOR->getDrawable(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;
                 move-result-object p0
                 return-object p0
-                """
+                """,
+                ExternalLabel("original", getInstruction(0))
             )
         }
 
