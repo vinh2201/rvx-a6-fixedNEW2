@@ -57,7 +57,7 @@ private val addMissingResourcesBytecodePatch = bytecodePatch {
     execute {
         // 1. Nâng cấp hook chống crash bằng file Java của Morphe (thay vì dùng ảnh transparent cứng)
         navigationBarGetDrawableFingerprint.methodOrThrow().apply {
-            addInstructionsWithLabels(
+            addInstructions(
                 0,
                 """
                 invoke-static {p0, p1}, $EXTENSION_CLASS_DESCRIPTOR->getDrawable(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;
