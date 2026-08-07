@@ -60,12 +60,10 @@ private val addMissingResourcesBytecodePatch = bytecodePatch {
             addInstructionsWithLabels(
                 0,
                 """
-                if-nez p1, :original
                 invoke-static {p0, p1}, $EXTENSION_CLASS_DESCRIPTOR->getDrawable(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;
                 move-result-object p0
                 return-object p0
-                """,
-                ExternalLabel("original", getInstruction(0))
+                """
             )
         }
 
