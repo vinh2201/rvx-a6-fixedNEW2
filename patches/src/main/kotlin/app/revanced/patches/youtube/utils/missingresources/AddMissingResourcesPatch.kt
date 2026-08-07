@@ -14,6 +14,8 @@ import app.revanced.util.ResourceGroup
 import app.revanced.util.copyResources
 import app.revanced.util.fingerprint.methodOrThrow
 
+private const val EXTENSION_CLASS_DESCRIPTOR = "$UTILS_PATH/MissingResourcesPatch;"
+
 /*
 private val addMissingResourcesBytecodePatch = bytecodePatch {
     execute {
