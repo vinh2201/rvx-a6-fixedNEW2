@@ -97,6 +97,7 @@ public final class MissingResourcesPatch {
             case 1161: return 158; // Thông báo (Notifications)
             case 1162: return 44;  // Cài đặt (Settings)
             default:   return iconType;
+        }
     }
 
     private static Drawable getFallbackDrawable(Resources resources, boolean preferToolbarIcon) {
