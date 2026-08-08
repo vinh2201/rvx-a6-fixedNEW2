@@ -5,7 +5,6 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-
 import android.util.Log;
 
 @SuppressWarnings("unused")
@@ -29,23 +28,43 @@ public final class MissingResourcesPatch {
         return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
     }
 
-    public static Drawable getDrawable(Context context, int id) {
-        // NGHE LÉN TÊN FILE ẢNH
+    // ---------------------------------------------------------
+    // HÀM CỐT LÕI: TỰ ĐỘNG ÉP XUỐNG ICON CŨ BẰNG CÁCH CHẶN TÊN
+    // ---------------------------------------------------------
+    private static int getDowngradedResourceId(Resources resources, String packageName, int originalId) {
+        if (originalId == 0) return 0;
         try {
-            if (id != 0) {
-                String resName = context.getResources().getResourceEntryName(id);
-                Log.e("KhoaBug_Resource", "YouTube dang goi ten hinh anh: " + resName + " (ID: " + id + ")");
+            String resName = resources.getResourceEntryName(originalId);
+            
+            // Nếu YouTube gọi icon giao diện mới (Cairo)
+            if (resName != null && resName.contains("_cairo_")) {
+                // Xóa chữ cairo đi (VD: yt_outline_bell_cairo_black_24 -> yt_outline_bell_black_24)
+                String legacyResName = resName.replace("_cairo_", "_");
+                int legacyId = resources.getIdentifier(legacyResName, "drawable", packageName);
+                
+                // Nếu tìm thấy icon cũ trong app, trả về ID của icon cũ
+                if (legacyId != 0) {
+                    Log.e("KhoaBug_Resource", "DA TRAO DOI: " + resName + " -> " + legacyResName);
+                    return legacyId;
+                }
             }
         } catch (Exception e) {
-            // Bỏ qua nếu ID không trỏ tới ảnh hợp lệ
+            // Bỏ qua lỗi
         }
+        return originalId; // Nếu không phải cairo hoặc không tìm thấy, giữ nguyên ID gốc
+    }
+    // ---------------------------------------------------------
 
+
+    public static Drawable getDrawable(Context context, int id) {
         if (id == 0) {
             return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
         }
 
         try {
-            return context.getDrawable(id);
+            // ÉP SỬ DỤNG ID CŨ NẾU CÓ
+            int targetId = getDowngradedResourceId(context.getResources(), context.getPackageName(), id);
+            return context.getDrawable(targetId);
         } catch (Resources.NotFoundException ex) {
             return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
         }
@@ -57,7 +76,9 @@ public final class MissingResourcesPatch {
         }
 
         try {
-            return resources.getDrawable(id);
+            // (Hack) Vì hàm này không có context, ta giả định package name của YouTube
+            int targetId = getDowngradedResourceId(resources, "com.google.android.youtube", id);
+            return resources.getDrawable(targetId);
         } catch (Resources.NotFoundException ex) {
             return getFallbackDrawable(resources, isToolbarMenuStack());
         }
@@ -69,7 +90,8 @@ public final class MissingResourcesPatch {
         }
 
         try {
-            return resources.getDrawable(id, theme);
+            int targetId = getDowngradedResourceId(resources, "com.google.android.youtube", id);
+            return resources.getDrawable(targetId, theme);
         } catch (Resources.NotFoundException ex) {
             return getFallbackDrawable(resources, isToolbarMenuStack());
         }
@@ -81,7 +103,8 @@ public final class MissingResourcesPatch {
         }
 
         try {
-            return resources.getDrawableForDensity(id, density);
+            int targetId = getDowngradedResourceId(resources, "com.google.android.youtube", id);
+            return resources.getDrawableForDensity(targetId, density);
         } catch (Resources.NotFoundException ex) {
             return getFallbackDrawableForDensity(resources, density, isToolbarMenuStack());
         }
@@ -93,24 +116,23 @@ public final class MissingResourcesPatch {
         }
 
         try {
-            return resources.getDrawableForDensity(id, density, theme);
+            int targetId = getDowngradedResourceId(resources, "com.google.android.youtube", id);
+            return resources.getDrawableForDensity(targetId, density, theme);
         } catch (Resources.NotFoundException ex) {
             return getFallbackDrawableForDensity(resources, density, theme, isToolbarMenuStack());
         }
     }
 
     public static int getLegacyIconType(int iconType) {
-        // ĐẶT MÁY NGHE LÉN Ở ĐÂY: In ra toàn bộ mã IconType mà YouTube đang gọi
-        Log.e("KhoaBug_Icon", "YouTube dang goi IconType: " + iconType);
-
+        // CẬP NHẬT MÃ ICONTYPE CHO THANH BOTTOM NAV CHUẨN NHẤT
         switch (iconType) {
             case 1154: return 406; // Trang chủ (Home)
             case 1157: return 776; // Shorts
             case 1155: return 408; // Kênh đăng ký (Subscriptions)
-            case 1156: return 410; // Thư viện / Bạn (Library / You)
+            case 1156: return 410; // Thư viện / Bạn (Library / You) - Có thể là 834 tùy bản cập nhật
             case 1160: return 181; // Nút Tạo (+)
-            case 1161: return 158; // Thông báo (Notifications)
             case 1162: return 44;  // Cài đặt (Settings)
+            case 1158: return 777; // Shorts (variations)
             default:   return iconType;
         }
     }
@@ -122,11 +144,9 @@ public final class MissingResourcesPatch {
                 try {
                     return resources.getDrawable(fallbackId);
                 } catch (Resources.NotFoundException ignored) {
-                    // Fall through to transparent drawable.
                 }
             }
         }
-
         return getTransparentDrawable();
     }
 
@@ -137,11 +157,9 @@ public final class MissingResourcesPatch {
                 try {
                     return resources.getDrawableForDensity(fallbackId, density);
                 } catch (Resources.NotFoundException ignored) {
-                    // Fall through to transparent drawable.
                 }
             }
         }
-
         return getTransparentDrawable();
     }
 
@@ -152,11 +170,9 @@ public final class MissingResourcesPatch {
                 try {
                     return resources.getDrawableForDensity(fallbackId, density, theme);
                 } catch (Resources.NotFoundException ignored) {
-                    // Fall through to transparent drawable.
                 }
             }
         }
-
         return getTransparentDrawable();
     }
 
@@ -169,7 +185,6 @@ public final class MissingResourcesPatch {
                 }
             }
         }
-
         return 0;
     }
 
@@ -180,7 +195,6 @@ public final class MissingResourcesPatch {
                 return true;
             }
         }
-
         return false;
     }
 
