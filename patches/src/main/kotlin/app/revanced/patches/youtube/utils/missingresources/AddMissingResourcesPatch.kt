@@ -126,13 +126,11 @@ val addMissingResourcesPatch = resourcePatch(
                 // original white legacy Shorts glyphs instead of the 20.xx look.
                 "yt_fill_search_cairo_black_24" to "@drawable/yt_fill_search_black_24",
                 "yt_outline_search_cairo_black_24" to "@drawable/yt_outline_search_black_24",
-                "yt_fill_overflow_vertical_cairo_black_24" to "@drawable/yt_fill_overflow_vertical_black_24",
                 "yt_outline_overflow_vertical_cairo_black_24" to "@drawable/yt_outline_overflow_vertical_black_24",
                 "yt_fill_chromecast_cairo_black_24" to "@drawable/yt_fill_chromecast_black_24",
                 "yt_outline_chromecast_cairo_black_24" to "@drawable/yt_outline_chromecast_black_24",
                 "yt_fill_compass_cairo_black_24" to "@drawable/yt_fill_compass_black_24",
                 "yt_outline_compass_cairo_black_24" to "@drawable/yt_outline_compass_black_24",
-                "yt_fill_gear_cairo_black_24" to "@drawable/yt_fill_gear_black_24",
                 "yt_outline_gear_cairo_black_24" to "@drawable/yt_outline_gear_black_24",
                 "yt_outline_share_cairo_black_24" to "@drawable/yt_outline_share_black_24",
                 "yt_outline_arrow_left_cairo_black_24" to "@drawable/yt_outline_arrow_left_black_24",
