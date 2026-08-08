@@ -9,6 +9,11 @@ import android.util.Log;
 
 @SuppressWarnings("unused")
 public final class MissingResourcesPatch {
+    // ---------------------------------------------------------
+    // BIẾN LƯU TÊN PACKAGE THỰC TẾ (Giải quyết việc ReVanced đổi tên app)
+    // ---------------------------------------------------------
+    private static String cachedPackageName = "com.google.android.youtube"; // Mặc định phòng hờ
+
     private static final int SETTINGS_ICON_TYPE = 44;
     private static final int SETTINGS_CAIRO_ICON_TYPE = 1162;
 
@@ -17,11 +22,6 @@ public final class MissingResourcesPatch {
             "ic_more_vert_black_24",
             "quantum_ic_more_vert_white_24",
             "yt_outline_search_black_24"
-    };
-    
-    private static final String[] RESOURCE_PACKAGES = {
-            "com.google.android.youtube",
-            null
     };
 
     public static Drawable getTransparentDrawable(Context context) {
@@ -55,15 +55,16 @@ public final class MissingResourcesPatch {
     }
     // ---------------------------------------------------------
 
-
     public static Drawable getDrawable(Context context, int id) {
+        // NGAY KHI CÓ CONTEXT, CHỘP LẤY TÊN PACKAGE THỰC TẾ CỦA REVANCED!
+        cachedPackageName = context.getPackageName();
+
         if (id == 0) {
             return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
         }
 
         try {
-            // ÉP SỬ DỤNG ID CŨ NẾU CÓ
-            int targetId = getDowngradedResourceId(context.getResources(), context.getPackageName(), id);
+            int targetId = getDowngradedResourceId(context.getResources(), cachedPackageName, id);
             return context.getDrawable(targetId);
         } catch (Resources.NotFoundException ex) {
             return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
@@ -76,8 +77,8 @@ public final class MissingResourcesPatch {
         }
 
         try {
-            // (Hack) Vì hàm này không có context, ta giả định package name của YouTube
-            int targetId = getDowngradedResourceId(resources, "com.google.android.youtube", id);
+            // SỬ DỤNG cachedPackageName THAY VÌ HARDCODE
+            int targetId = getDowngradedResourceId(resources, cachedPackageName, id);
             return resources.getDrawable(targetId);
         } catch (Resources.NotFoundException ex) {
             return getFallbackDrawable(resources, isToolbarMenuStack());
@@ -90,7 +91,7 @@ public final class MissingResourcesPatch {
         }
 
         try {
-            int targetId = getDowngradedResourceId(resources, "com.google.android.youtube", id);
+            int targetId = getDowngradedResourceId(resources, cachedPackageName, id);
             return resources.getDrawable(targetId, theme);
         } catch (Resources.NotFoundException ex) {
             return getFallbackDrawable(resources, isToolbarMenuStack());
@@ -103,7 +104,7 @@ public final class MissingResourcesPatch {
         }
 
         try {
-            int targetId = getDowngradedResourceId(resources, "com.google.android.youtube", id);
+            int targetId = getDowngradedResourceId(resources, cachedPackageName, id);
             return resources.getDrawableForDensity(targetId, density);
         } catch (Resources.NotFoundException ex) {
             return getFallbackDrawableForDensity(resources, density, isToolbarMenuStack());
@@ -116,7 +117,7 @@ public final class MissingResourcesPatch {
         }
 
         try {
-            int targetId = getDowngradedResourceId(resources, "com.google.android.youtube", id);
+            int targetId = getDowngradedResourceId(resources, cachedPackageName, id);
             return resources.getDrawableForDensity(targetId, density, theme);
         } catch (Resources.NotFoundException ex) {
             return getFallbackDrawableForDensity(resources, density, theme, isToolbarMenuStack());
@@ -125,11 +126,12 @@ public final class MissingResourcesPatch {
 
     public static int getLegacyIconType(int iconType) {
         // CẬP NHẬT MÃ ICONTYPE CHO THANH BOTTOM NAV CHUẨN NHẤT
+        // Đã xóa sạch các mã liên quan đến Top Bar (1161, 1162) để tránh lỗi gọi nhầm Logo YouTube
         switch (iconType) {
             case 1154: return 406; // Trang chủ (Home)
             case 1157: return 776; // Shorts
             case 1155: return 408; // Kênh đăng ký (Subscriptions)
-            case 1156: return 410; // Thư viện / Bạn (Library / You) - Có thể là 834 tùy bản cập nhật
+            case 1156: return 410; // Thư viện / Bạn (Library / You)
             case 1160: return 181; // Nút Tạo (+)
             case 1162: return 44;  // Cài đặt (Settings)
             case 1158: return 777; // Shorts (variations)
@@ -177,8 +179,11 @@ public final class MissingResourcesPatch {
     }
 
     private static int findDrawableId(Resources resources, String[] names) {
+        // Sử dụng mảng linh hoạt với cachedPackageName thay vì mảng tĩnh cứng nhắc
+        String[] packagesToSearch = { cachedPackageName, "com.google.android.youtube", null };
+        
         for (String name : names) {
-            for (String resourcePackage : RESOURCE_PACKAGES) {
+            for (String resourcePackage : packagesToSearch) {
                 int id = resources.getIdentifier(name, "drawable", resourcePackage);
                 if (id != 0) {
                     return id;
