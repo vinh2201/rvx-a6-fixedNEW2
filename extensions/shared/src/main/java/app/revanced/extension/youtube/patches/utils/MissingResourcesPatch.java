@@ -84,17 +84,11 @@ public final class MissingResourcesPatch {
             case 1156: return 410; // Library / You
             case 1160: return 181; // Create (+)
             
-            // Các mã Cairo của Topbar (Tìm kiếm, Thông báo, Cài đặt, Cast)
-            // Nếu server trả về các mã này mà enum cũ không khớp, 
-            // ta trả về một giá trị an toàn hoặc để hệ thống tự xử lý qua tên.
-            case 1239: // Search Cairo ID
-            case 1161: // Bell Cairo ID
-            case 1021: // Cast Cairo ID
-            case 1162: // Settings Cairo ID
-                return iconType; 
-                
+            // TUYỆT ĐỐI KHÔNG ÉP CÁC ICON TOPBAR (Thông báo, Tìm kiếm, Cài đặt...) 
+            // VỀ SỐ LEGACY NỮA ĐỂ TRÁNH BỊ GÁN NHẦM ICON!
+            // Hãy để app gọi trực tiếp tên Cairo đã được ta map alias trong drawables.xml
             default:   
-                return iconType;
+                return iconType; 
         }
     }
 
