@@ -1,4 +1,4 @@
-package app.revanced.extension.youtube.patches.utils; // TODO: Nhớ đổi package
+package app.revanced.extension.youtube.patches.utils; // TODO: Đổi package name này cho khớp với project Kitadai31 của bạn
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -9,12 +9,18 @@ import android.util.Log;
 
 @SuppressWarnings("unused")
 public final class MissingResourcesPatch {
-    
-    private static String cachedPackageName = "com.google.android.youtube";
+    private static final int SETTINGS_ICON_TYPE = 44;
+    private static final int SETTINGS_CAIRO_ICON_TYPE = 1162;
 
     private static final String[] TOOLBAR_FALLBACK_DRAWABLES = {
             "yt_outline_more_vert_black_24",
-            "ic_more_vert_black_24"
+            "ic_more_vert_black_24",
+            "quantum_ic_more_vert_white_24"
+    };
+    
+    private static final String[] RESOURCE_PACKAGES = {
+            "com.google.android.youtube",
+            null
     };
 
     public static Drawable getTransparentDrawable(Context context) {
@@ -22,67 +28,66 @@ public final class MissingResourcesPatch {
     }
 
     // ---------------------------------------------------------
-    // HÀM CỐT LÕI: QUYẾT KHÔNG CHO TÀNG HÌNH
+    // HÀM CỐT LÕI: TỰ ĐỘNG ĐỔI TÊN CAIRO VỀ ICON CŨ CHO ĐÁM PHÍA TRÊN
     // ---------------------------------------------------------
-    private static int getDowngradedResourceId(Resources resources, int originalId) {
+    private static int getDowngradedResourceId(Resources resources, String packageName, int originalId) {
         if (originalId == 0) return 0;
         try {
             String resName = resources.getResourceEntryName(originalId);
             
+            // Nếu YouTube gọi icon giao diện mới chứa _cairo_
             if (resName != null && resName.contains("_cairo_")) {
                 String legacyResName = resName.replace("_cairo_", "_");
-                String[] searchPackages = { "com.google.android.youtube", cachedPackageName, "app.revanced.android.youtube", null };
                 
-                for (String pkg : searchPackages) {
+                String[] packagesToSearch = { packageName, "com.google.android.youtube", null };
+                for (String pkg : packagesToSearch) {
                     int legacyId = resources.getIdentifier(legacyResName, "drawable", pkg);
                     if (legacyId != 0) {
-                        Log.e("KhoaBug_Resource", "✅ DOI THANH CONG: " + resName + " -> " + legacyResName);
+                        Log.e("KhoaBug_Resource", "DA QUAY XE ICON: " + resName + " -> " + legacyResName);
                         return legacyId;
                     }
                 }
-                // NẾU TÌM KHÔNG RA, ÉP DÙNG LẠI CAIRO GỐC ĐỂ KHÔNG BỊ BỐC HƠI
-                Log.e("KhoaBug_Resource", "❌ TIM KHONG RA: " + legacyResName + " -> Ép dùng lại Cairo");
-                return originalId;
             }
         } catch (Exception e) {
-            // Lỗi hệ thống, ném trả id gốc
-            Log.e("KhoaBug_Resource", "⚠️ LOI DOC TEN ID: " + originalId);
+            // Bỏ qua lỗi
         }
-        return originalId; // Giữ nguyên nếu không phải cairo
+        return originalId;
     }
     // ---------------------------------------------------------
 
     public static Drawable getDrawable(Context context, int id) {
-        cachedPackageName = context.getPackageName();
-        if (id == 0) return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
+        if (id == 0) {
+            return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
+        }
 
         try {
-            int targetId = getDowngradedResourceId(context.getResources(), id);
+            int targetId = getDowngradedResourceId(context.getResources(), context.getPackageName(), id);
             return context.getDrawable(targetId);
         } catch (Resources.NotFoundException ex) {
-            // BẮT TẬN TAY KẺ GÂY LỖI SỤP ĐỔ LAYOUT
-            Log.e("KhoaBug_Resource", "💀 SẬP NGUỒN ID (Gay tang hinh): " + id);
             return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
         }
     }
 
     public static Drawable getDrawable(Resources resources, int id) {
-        if (id == 0) return getFallbackDrawable(resources, isToolbarMenuStack());
+        if (id == 0) {
+            return getFallbackDrawable(resources, isToolbarMenuStack());
+        }
 
         try {
-            int targetId = getDowngradedResourceId(resources, id);
+            int targetId = getDowngradedResourceId(resources, "com.google.android.youtube", id);
             return resources.getDrawable(targetId);
         } catch (Resources.NotFoundException ex) {
-            Log.e("KhoaBug_Resource", "💀 SẬP NGUỒN ID: " + id);
             return getFallbackDrawable(resources, isToolbarMenuStack());
         }
     }
 
     public static Drawable getDrawable(Resources resources, int id, Resources.Theme theme) {
-        if (id == 0) return getFallbackDrawable(resources, isToolbarMenuStack());
+        if (id == 0) {
+            return getFallbackDrawable(resources, isToolbarMenuStack());
+        }
 
         try {
-            int targetId = getDowngradedResourceId(resources, id);
+            int targetId = getDowngradedResourceId(resources, "com.google.android.youtube", id);
             return resources.getDrawable(targetId, theme);
         } catch (Resources.NotFoundException ex) {
             return getFallbackDrawable(resources, isToolbarMenuStack());
@@ -90,10 +95,12 @@ public final class MissingResourcesPatch {
     }
 
     public static Drawable getDrawableForDensity(Resources resources, int id, int density) {
-        if (id == 0) return getFallbackDrawableForDensity(resources, density, isToolbarMenuStack());
+        if (id == 0) {
+            return getFallbackDrawableForDensity(resources, density, isToolbarMenuStack());
+        }
 
         try {
-            int targetId = getDowngradedResourceId(resources, id);
+            int targetId = getDowngradedResourceId(resources, "com.google.android.youtube", id);
             return resources.getDrawableForDensity(targetId, density);
         } catch (Resources.NotFoundException ex) {
             return getFallbackDrawableForDensity(resources, density, isToolbarMenuStack());
@@ -101,10 +108,12 @@ public final class MissingResourcesPatch {
     }
 
     public static Drawable getDrawableForDensity(Resources resources, int id, int density, Resources.Theme theme) {
-        if (id == 0) return getFallbackDrawableForDensity(resources, density, theme, isToolbarMenuStack());
+        if (id == 0) {
+            return getFallbackDrawableForDensity(resources, density, theme, isToolbarMenuStack());
+        }
 
         try {
-            int targetId = getDowngradedResourceId(resources, id);
+            int targetId = getDowngradedResourceId(resources, "com.google.android.youtube", id);
             return resources.getDrawableForDensity(targetId, density, theme);
         } catch (Resources.NotFoundException ex) {
             return getFallbackDrawableForDensity(resources, density, theme, isToolbarMenuStack());
@@ -112,12 +121,15 @@ public final class MissingResourcesPatch {
     }
 
     public static int getLegacyIconType(int iconType) {
+        Log.e("KhoaBug_Icon", "YouTube dang goi IconType: " + iconType);
+
+        // Giữ lại các mã Bottom Nav chuẩn, ĐÃ XÓA 1161 và 1162 để tránh dẫm chân lên Top Bar
         switch (iconType) {
-            case 1154: return 406; // Trang chủ
+            case 1154: return 406; // Trang chủ (Home)
             case 1157: return 776; // Shorts
-            case 1155: return 408; // Đăng ký
-            case 1156: return 410; // Thư viện
-            case 1160: return 181; // Dấu +
+            case 1155: return 408; // Kênh đăng ký (Subscriptions)
+            case 1156: return 410; // Thư viện / Bạn (Library / You)
+            case 1160: return 181; // Nút Tạo (+)
             case 1158: return 777; // Shorts (variations)
             default:   return iconType;
         }
@@ -127,10 +139,13 @@ public final class MissingResourcesPatch {
         if (preferToolbarIcon) {
             int fallbackId = findDrawableId(resources, TOOLBAR_FALLBACK_DRAWABLES);
             if (fallbackId != 0) {
-                try { return resources.getDrawable(fallbackId); } 
-                catch (Resources.NotFoundException ignored) {}
+                try {
+                    return resources.getDrawable(fallbackId);
+                } catch (Resources.NotFoundException ignored) {
+                }
             }
         }
+
         return getTransparentDrawable();
     }
 
@@ -138,10 +153,13 @@ public final class MissingResourcesPatch {
         if (preferToolbarIcon) {
             int fallbackId = findDrawableId(resources, TOOLBAR_FALLBACK_DRAWABLES);
             if (fallbackId != 0) {
-                try { return resources.getDrawableForDensity(fallbackId, density); } 
-                catch (Resources.NotFoundException ignored) {}
+                try {
+                    return resources.getDrawableForDensity(fallbackId, density);
+                } catch (Resources.NotFoundException ignored) {
+                }
             }
         }
+
         return getTransparentDrawable();
     }
 
@@ -149,21 +167,26 @@ public final class MissingResourcesPatch {
         if (preferToolbarIcon) {
             int fallbackId = findDrawableId(resources, TOOLBAR_FALLBACK_DRAWABLES);
             if (fallbackId != 0) {
-                try { return resources.getDrawableForDensity(fallbackId, density, theme); } 
-                catch (Resources.NotFoundException ignored) {}
+                try {
+                    return resources.getDrawableForDensity(fallbackId, density, theme);
+                } catch (Resources.NotFoundException ignored) {
+                }
             }
         }
+
         return getTransparentDrawable();
     }
 
     private static int findDrawableId(Resources resources, String[] names) {
-        String[] packagesToSearch = { cachedPackageName, "com.google.android.youtube", "app.revanced.android.youtube", null };
         for (String name : names) {
-            for (String resourcePackage : packagesToSearch) {
+            for (String resourcePackage : RESOURCE_PACKAGES) {
                 int id = resources.getIdentifier(name, "drawable", resourcePackage);
-                if (id != 0) return id;
+                if (id != 0) {
+                    return id;
+                }
             }
         }
+
         return 0;
     }
 
@@ -174,10 +197,11 @@ public final class MissingResourcesPatch {
                 return true;
             }
         }
+
         return false;
     }
 
     private static Drawable getTransparentDrawable() {
-        return new ColorDrawable(Color.TRANSPARENT); // Kẻ phản diện gây ra tàng hình
+        return new ColorDrawable(Color.TRANSPARENT);
     }
 }
