@@ -1,4 +1,4 @@
-package app.revanced.extension.youtube.patches.utils; // TODO: Đổi package name này cho khớp với project Kitadai31
+package app.revanced.extension.youtube.patches.utils; // TODO: Nhớ đổi package
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -12,22 +12,9 @@ public final class MissingResourcesPatch {
     
     private static String cachedPackageName = "com.google.android.youtube";
 
-    // Khôi phục mã Settings cho chuẩn xác
-    private static final int SETTINGS_ICON_TYPE = 44;
-    private static final int SETTINGS_CAIRO_ICON_TYPE = 1162;
-
-    // ĐÃ XÓA KÍNH LÚP RA KHỎI ĐÂY ĐỂ TRÁNH LỖI PHÂN THÂN
     private static final String[] TOOLBAR_FALLBACK_DRAWABLES = {
             "yt_outline_more_vert_black_24",
-            "ic_more_vert_black_24",
-            "quantum_ic_more_vert_white_24"
-    };
-
-    // MẢNG TRUY LÙNG PACKAGE - Chìa khóa để không bị tàng hình logo
-    private static final String[] RESOURCE_PACKAGES = {
-            "com.google.android.youtube",
-            "app.revanced.android.youtube",
-            null
+            "ic_more_vert_black_24"
     };
 
     public static Drawable getTransparentDrawable(Context context) {
@@ -35,7 +22,7 @@ public final class MissingResourcesPatch {
     }
 
     // ---------------------------------------------------------
-    // HÀM CỐT LÕI: TRUY LÙNG RESOURCE ĐA PACKAGE
+    // HÀM CỐT LÕI: QUYẾT KHÔNG CHO TÀNG HÌNH
     // ---------------------------------------------------------
     private static int getDowngradedResourceId(Resources resources, int originalId) {
         if (originalId == 0) return 0;
@@ -44,22 +31,24 @@ public final class MissingResourcesPatch {
             
             if (resName != null && resName.contains("_cairo_")) {
                 String legacyResName = resName.replace("_cairo_", "_");
-                
-                // Quét qua tất cả các package có thể có để tìm bằng được icon cũ
                 String[] searchPackages = { "com.google.android.youtube", cachedPackageName, "app.revanced.android.youtube", null };
                 
                 for (String pkg : searchPackages) {
                     int legacyId = resources.getIdentifier(legacyResName, "drawable", pkg);
                     if (legacyId != 0) {
-                        Log.e("KhoaBug_Resource", "DA TRAO DOI THANH CONG: " + resName + " -> " + legacyResName + " (Package: " + pkg + ")");
+                        Log.e("KhoaBug_Resource", "✅ DOI THANH CONG: " + resName + " -> " + legacyResName);
                         return legacyId;
                     }
                 }
+                // NẾU TÌM KHÔNG RA, ÉP DÙNG LẠI CAIRO GỐC ĐỂ KHÔNG BỊ BỐC HƠI
+                Log.e("KhoaBug_Resource", "❌ TIM KHONG RA: " + legacyResName + " -> Ép dùng lại Cairo");
+                return originalId;
             }
         } catch (Exception e) {
-            // Bỏ qua lỗi
+            // Lỗi hệ thống, ném trả id gốc
+            Log.e("KhoaBug_Resource", "⚠️ LOI DOC TEN ID: " + originalId);
         }
-        return originalId;
+        return originalId; // Giữ nguyên nếu không phải cairo
     }
     // ---------------------------------------------------------
 
@@ -68,10 +57,11 @@ public final class MissingResourcesPatch {
         if (id == 0) return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
 
         try {
-            // Không truyền cachedPackageName vào hàm nữa, để hàm tự dùng mảng quét
             int targetId = getDowngradedResourceId(context.getResources(), id);
             return context.getDrawable(targetId);
         } catch (Resources.NotFoundException ex) {
+            // BẮT TẬN TAY KẺ GÂY LỖI SỤP ĐỔ LAYOUT
+            Log.e("KhoaBug_Resource", "💀 SẬP NGUỒN ID (Gay tang hinh): " + id);
             return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
         }
     }
@@ -83,6 +73,7 @@ public final class MissingResourcesPatch {
             int targetId = getDowngradedResourceId(resources, id);
             return resources.getDrawable(targetId);
         } catch (Resources.NotFoundException ex) {
+            Log.e("KhoaBug_Resource", "💀 SẬP NGUỒN ID: " + id);
             return getFallbackDrawable(resources, isToolbarMenuStack());
         }
     }
@@ -128,7 +119,6 @@ public final class MissingResourcesPatch {
             case 1156: return 410; // Thư viện
             case 1160: return 181; // Dấu +
             case 1158: return 777; // Shorts (variations)
-            case 1162: return 44;  // Cài đặt (Bổ sung lại cho chuẩn)
             default:   return iconType;
         }
     }
@@ -167,9 +157,7 @@ public final class MissingResourcesPatch {
     }
 
     private static int findDrawableId(Resources resources, String[] names) {
-        // Dùng mảng RESOURCE_PACKAGES mới để quét toàn diện
         String[] packagesToSearch = { cachedPackageName, "com.google.android.youtube", "app.revanced.android.youtube", null };
-        
         for (String name : names) {
             for (String resourcePackage : packagesToSearch) {
                 int id = resources.getIdentifier(name, "drawable", resourcePackage);
@@ -190,6 +178,6 @@ public final class MissingResourcesPatch {
     }
 
     private static Drawable getTransparentDrawable() {
-        return new ColorDrawable(Color.TRANSPARENT);
+        return new ColorDrawable(Color.TRANSPARENT); // Kẻ phản diện gây ra tàng hình
     }
 }
