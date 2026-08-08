@@ -5,7 +5,6 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 
 @SuppressWarnings("unused")
 public final class MissingResourcesPatch {
@@ -13,9 +12,10 @@ public final class MissingResourcesPatch {
     private static final int SETTINGS_CAIRO_ICON_TYPE = 1162;
 
     private static final String[] TOOLBAR_FALLBACK_DRAWABLES = {
-            "yt_outline_more_vert_black_24",
+            "quantum_ic_more_vert_black_24",
             "ic_more_vert_black_24",
-            "quantum_ic_more_vert_white_24"
+            "quantum_ic_more_vert_white_24",
+            "yt_outline_search_black_24"
     };
     
     private static final String[] RESOURCE_PACKAGES = {
@@ -27,67 +27,13 @@ public final class MissingResourcesPatch {
         return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
     }
 
-    // ---------------------------------------------------------
-    // HÀM CỐT LÕI: TỰ ĐỘNG ĐỔI TÊN CAIRO VÀ "TRÁO HÀNG ĐÍCH DANH"
-    // ---------------------------------------------------------
-    private static int getDowngradedResourceId(Resources resources, String packageName, int originalId) {
-        if (originalId == 0) return 0;
-        try {
-            String resName = resources.getResourceEntryName(originalId);
-            if (resName == null) return originalId;
-
-            String mappedLegacyName = null;
-
-            // 1. TRÁO HÀNG ĐÍCH DANH (Dùng .equals để bắt chính xác 100%, không bắt nhầm)
-            // Sửa nút Tìm kiếm (bị nhầm thành Reload / Sync)
-            if (resName.equals("yt_outline_reload_black_24") || resName.equals("yt_outline_sync_black_24")) {
-                mappedLegacyName = "yt_outline_search_black_24";
-            } 
-            // Sửa nút Thông báo (bị nhầm thành Autoplay)
-            else if (resName.equals("yt_outline_autoplay_black_24") || resName.equals("yt_fill_autoplay_black_24")) {
-                mappedLegacyName = "yt_outline_bell_black_24";
-            }
-            // (Nếu nút Cast bị biến thành hình khác, bạn có thể soi Logcat để thêm 1 dòng else if tương tự vào đây)
-
-            String[] packagesToSearch = { packageName, "com.google.android.youtube", null };
-
-            // Nếu có hàng thủ công, ưu tiên tráo ngay lập tức
-            if (mappedLegacyName != null) {
-                for (String pkg : packagesToSearch) {
-                    int legacyId = resources.getIdentifier(mappedLegacyName, "drawable", pkg);
-                    if (legacyId != 0) {
-                        Log.e("KhoaBug_Resource", "DA BAN TIA ICON: " + resName + " -> " + mappedLegacyName);
-                        return legacyId;
-                    }
-                }
-            }
-            
-            // 2. XỬ LÝ TỰ ĐỘNG CHO CÁC ICON CÓ CHỮ _cairo_ (Fix triệt để lỗi sinh ra __black)
-            if (resName.contains("_cairo_")) {
-                String legacyResName = resName.replace("_cairo_", ""); 
-                
-                for (String pkg : packagesToSearch) {
-                    int legacyId = resources.getIdentifier(legacyResName, "drawable", pkg);
-                    if (legacyId != 0) {
-                        return legacyId;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            // Bỏ qua lỗi
-        }
-        return originalId;
-    }
-    // ---------------------------------------------------------
-
     public static Drawable getDrawable(Context context, int id) {
         if (id == 0) {
             return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
         }
 
         try {
-            int targetId = getDowngradedResourceId(context.getResources(), context.getPackageName(), id);
-            return context.getDrawable(targetId);
+            return context.getDrawable(id);
         } catch (Resources.NotFoundException ex) {
             return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
         }
@@ -99,8 +45,7 @@ public final class MissingResourcesPatch {
         }
 
         try {
-            int targetId = getDowngradedResourceId(resources, "com.google.android.youtube", id);
-            return resources.getDrawable(targetId);
+            return resources.getDrawable(id);
         } catch (Resources.NotFoundException ex) {
             return getFallbackDrawable(resources, isToolbarMenuStack());
         }
@@ -112,8 +57,7 @@ public final class MissingResourcesPatch {
         }
 
         try {
-            int targetId = getDowngradedResourceId(resources, "com.google.android.youtube", id);
-            return resources.getDrawable(targetId, theme);
+            return resources.getDrawable(id, theme);
         } catch (Resources.NotFoundException ex) {
             return getFallbackDrawable(resources, isToolbarMenuStack());
         }
@@ -125,8 +69,7 @@ public final class MissingResourcesPatch {
         }
 
         try {
-            int targetId = getDowngradedResourceId(resources, "com.google.android.youtube", id);
-            return resources.getDrawableForDensity(targetId, density);
+            return resources.getDrawableForDensity(id, density);
         } catch (Resources.NotFoundException ex) {
             return getFallbackDrawableForDensity(resources, density, isToolbarMenuStack());
         }
@@ -138,14 +81,12 @@ public final class MissingResourcesPatch {
         }
 
         try {
-            int targetId = getDowngradedResourceId(resources, "com.google.android.youtube", id);
-            return resources.getDrawableForDensity(targetId, density, theme);
+            return resources.getDrawableForDensity(id, density, theme);
         } catch (Resources.NotFoundException ex) {
             return getFallbackDrawableForDensity(resources, density, theme, isToolbarMenuStack());
         }
     }
 
-    // MAP CÁC MÃ ĐÃ BIẾT Ở ĐÂY ĐỂ ĐẢM BẢO CHUẨN BACKEND
     public static int getLegacyIconType(int iconType) {
         switch (iconType) {
             case 1154: return 406; // Trang chủ (Home)
@@ -153,8 +94,8 @@ public final class MissingResourcesPatch {
             case 1155: return 408; // Kênh đăng ký (Subscriptions)
             case 1156: return 410; // Thư viện / Bạn (Library / You)
             case 1160: return 181; // Nút Tạo (+)
-            case 1158: return 777; // Shorts (variations)
-            case 1162: return 44;  // Rất có thể đây là Settings (Bánh răng)
+            case 1161: return 158; // Thông báo (Notifications)
+            case 1162: return 44;  // Cài đặt (Settings)
             default:   return iconType;
         }
     }
@@ -166,9 +107,11 @@ public final class MissingResourcesPatch {
                 try {
                     return resources.getDrawable(fallbackId);
                 } catch (Resources.NotFoundException ignored) {
+                    // Fall through to transparent drawable.
                 }
             }
         }
+
         return getTransparentDrawable();
     }
 
@@ -179,9 +122,11 @@ public final class MissingResourcesPatch {
                 try {
                     return resources.getDrawableForDensity(fallbackId, density);
                 } catch (Resources.NotFoundException ignored) {
+                    // Fall through to transparent drawable.
                 }
             }
         }
+
         return getTransparentDrawable();
     }
 
@@ -192,9 +137,11 @@ public final class MissingResourcesPatch {
                 try {
                     return resources.getDrawableForDensity(fallbackId, density, theme);
                 } catch (Resources.NotFoundException ignored) {
+                    // Fall through to transparent drawable.
                 }
             }
         }
+
         return getTransparentDrawable();
     }
 
@@ -207,6 +154,7 @@ public final class MissingResourcesPatch {
                 }
             }
         }
+
         return 0;
     }
 
@@ -217,6 +165,7 @@ public final class MissingResourcesPatch {
                 return true;
             }
         }
+
         return false;
     }
 
