@@ -28,7 +28,7 @@ public final class MissingResourcesPatch {
     }
 
     // ---------------------------------------------------------
-    // HÀM CỐT LÕI: TỰ ĐỘNG ĐỔI TÊN CAIRO VỀ ICON CŨ CHO ĐÁM PHÍA TRÊN
+    // HÀM CỐT LÕI: TỰ ĐỘNG ĐỔI TÊN CAIRO VÀ "TRÁO HÀNG ĐÍCH DANH"
     // ---------------------------------------------------------
     private static int getDowngradedResourceId(Resources resources, String packageName, int originalId) {
         if (originalId == 0) return 0;
@@ -36,36 +36,39 @@ public final class MissingResourcesPatch {
             String resName = resources.getResourceEntryName(originalId);
             if (resName == null) return originalId;
 
-            // 1. ÁNH XẠ THỦ CÔNG CHO CÁC ICON CỨNG ĐẦU KHÔNG CÓ CHỮ _cairo_
             String mappedLegacyName = null;
-            if (resName.contains("chromecast") || resName.contains("cast")) {
-                mappedLegacyName = "yt_outline_chromecast_black_24"; // Hoặc tên icon cast cũ tương ứng trong apk của bạn
-            } else if (resName.contains("reload") || resName.contains("sync") || resName.contains("refresh")) {
-                mappedLegacyName = "yt_outline_refresh_black_24"; // Hoặc tên icon refresh cũ
+
+            // 1. TRÁO HÀNG ĐÍCH DANH (Dùng .equals để bắt chính xác 100%, không bắt nhầm)
+            // Sửa nút Tìm kiếm (bị nhầm thành Reload / Sync)
+            if (resName.equals("yt_outline_reload_black_24") || resName.equals("yt_outline_sync_black_24")) {
+                mappedLegacyName = "yt_outline_search_black_24";
+            } 
+            // Sửa nút Thông báo (bị nhầm thành Autoplay)
+            else if (resName.equals("yt_outline_autoplay_black_24") || resName.equals("yt_fill_autoplay_black_24")) {
+                mappedLegacyName = "yt_outline_bell_black_24";
             }
+            // (Nếu nút Cast bị biến thành hình khác, bạn có thể soi Logcat để thêm 1 dòng else if tương tự vào đây)
 
             String[] packagesToSearch = { packageName, "com.google.android.youtube", null };
 
-            // Nếu có ánh xạ thủ công, thử tìm trước
+            // Nếu có hàng thủ công, ưu tiên tráo ngay lập tức
             if (mappedLegacyName != null) {
                 for (String pkg : packagesToSearch) {
                     int legacyId = resources.getIdentifier(mappedLegacyName, "drawable", pkg);
                     if (legacyId != 0) {
-                        Log.e("KhoaBug_Resource", "DA MAP THU CONG: " + resName + " -> " + mappedLegacyName);
+                        Log.e("KhoaBug_Resource", "DA BAN TIA ICON: " + resName + " -> " + mappedLegacyName);
                         return legacyId;
                     }
                 }
             }
             
-            // 2. XỬ LÝ TỰ ĐỘNG CHO CÁC ICON CÓ CHỮ _cairo_ (Fix lỗi dính double underscore __)
+            // 2. XỬ LÝ TỰ ĐỘNG CHO CÁC ICON CÓ CHỮ _cairo_ (Fix triệt để lỗi sinh ra __black)
             if (resName.contains("_cairo_")) {
-                // Thay thế _cairo_ thành rỗng trước, rồi đổi _ black thành _black để tránh lỗi 2 dấu gạch dưới
                 String legacyResName = resName.replace("_cairo_", ""); 
                 
                 for (String pkg : packagesToSearch) {
                     int legacyId = resources.getIdentifier(legacyResName, "drawable", pkg);
                     if (legacyId != 0) {
-                        Log.e("KhoaBug_Resource", "DA QUAY XE ICON: " + resName + " -> " + legacyResName);
                         return legacyId;
                     }
                 }
@@ -142,10 +145,8 @@ public final class MissingResourcesPatch {
         }
     }
 
+    // MAP CÁC MÃ ĐÃ BIẾT Ở ĐÂY ĐỂ ĐẢM BẢO CHUẨN BACKEND
     public static int getLegacyIconType(int iconType) {
-        Log.e("KhoaBug_Icon", "YouTube dang goi IconType: " + iconType);
-
-        // Giữ lại các mã Bottom Nav chuẩn, ĐÃ XÓA 1161 và 1162 để tránh dẫm chân lên Top Bar
         switch (iconType) {
             case 1154: return 406; // Trang chủ (Home)
             case 1157: return 776; // Shorts
@@ -153,6 +154,7 @@ public final class MissingResourcesPatch {
             case 1156: return 410; // Thư viện / Bạn (Library / You)
             case 1160: return 181; // Nút Tạo (+)
             case 1158: return 777; // Shorts (variations)
+            case 1162: return 44;  // Rất có thể đây là Settings (Bánh răng)
             default:   return iconType;
         }
     }
@@ -167,7 +169,6 @@ public final class MissingResourcesPatch {
                 }
             }
         }
-
         return getTransparentDrawable();
     }
 
@@ -181,7 +182,6 @@ public final class MissingResourcesPatch {
                 }
             }
         }
-
         return getTransparentDrawable();
     }
 
@@ -195,7 +195,6 @@ public final class MissingResourcesPatch {
                 }
             }
         }
-
         return getTransparentDrawable();
     }
 
@@ -208,7 +207,6 @@ public final class MissingResourcesPatch {
                 }
             }
         }
-
         return 0;
     }
 
@@ -219,7 +217,6 @@ public final class MissingResourcesPatch {
                 return true;
             }
         }
-
         return false;
     }
 
