@@ -115,18 +115,6 @@ public final class MissingResourcesPatch {
         }
     }
 
-    public static boolean isValidDrawable(Context context, int id) {
-        if (id == 0) return false;
-        try {
-            // Kiểm tra xem ID này có thực sự trỏ tới một file ảnh không
-            String type = context.getResources().getResourceTypeName(id);
-            return "drawable".equals(type) || "mipmap".equals(type) || "color".equals(type);
-        } catch (Resources.NotFoundException e) {
-            // Nếu không tìm thấy hoặc là ID ảo ma, trả về false để trạm kiểm lâm tóm lại
-            return false;
-        }
-    }
-
     private static Drawable getFallbackDrawable(Resources resources, boolean preferToolbarIcon) {
         if (preferToolbarIcon) {
             int fallbackId = findDrawableId(resources, TOOLBAR_FALLBACK_DRAWABLES);
