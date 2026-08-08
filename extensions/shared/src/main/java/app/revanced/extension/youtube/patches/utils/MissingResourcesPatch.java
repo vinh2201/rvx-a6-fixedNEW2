@@ -2,77 +2,189 @@ package app.revanced.extension.youtube.patches.utils;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
-
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 @SuppressWarnings("unused")
 public final class MissingResourcesPatch {
-    private static final String TAG = "YTIconDebug";
-    
-    private static final Queue<Integer> PENDING_CAIRO_IDS = new ConcurrentLinkedQueue<>();
-    // Mốc thời gian app bắt đầu chạy để chống sốc lúc khởi động (3 giây đầu)
-    private static final long APP_START_TIME = System.currentTimeMillis();
-    private static final long WARMUP_DELAY_MS = 3000; 
 
-    public static int getLegacyIconType(int iconType) {
-        // Chỉ bắt đầu ghi nhận sau khi app đã qua giai đoạn khởi động nặng nhọc
-        if (System.currentTimeMillis() - APP_START_TIME > WARMUP_DELAY_MS) {
-            if (iconType == 1239 || iconType == 1161 || iconType == 1021 || iconType == 1162) {
-                PENDING_CAIRO_IDS.offer(iconType);
-            }
+    private static final String[] RESOURCE_PACKAGES = {
+            "com.google.android.youtube",
+            null
+    };
+
+    public static Drawable getTransparentDrawable(Context context) {
+        return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
+    }
+
+    public static Drawable getDrawable(Context context, int id) {
+        if (id == 0) {
+            return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
         }
-
-        switch (iconType) {
-            case 1154: return 406;
-            case 1157: return 776;
-            case 1155: return 408;
-            case 1156: return 410;
-            case 1160: return 181;
-            default: return iconType;
+        try {
+            return context.getDrawable(id);
+        } catch (Resources.NotFoundException ex) {
+            return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
         }
     }
 
-    private static Drawable getSafeDrawable(Resources res, int cairoId) {
-        String[] targetNames = null;
-        if (cairoId == 1239) targetNames = new String[]{"yt_outline_search_black_24"};
-        else if (cairoId == 1161) targetNames = new String[]{"yt_outline_bell_black_24", "yt_outline_notification_black_24"};
-        else if (cairoId == 1021) targetNames = new String[]{"ic_outlined_media_route"};
-        else if (cairoId == 1162) targetNames = new String[]{"yt_outline_settings_black_24"};
+    public static Drawable getDrawable(Resources resources, int id) {
+        if (id == 0) {
+            return getFallbackDrawable(resources, isToolbarMenuStack());
+        }
+        try {
+            return resources.getDrawable(id);
+        } catch (Resources.NotFoundException ex) {
+            return getFallbackDrawable(resources, isToolbarMenuStack());
+        }
+    }
 
-        if (targetNames != null) {
-            for (String name : targetNames) {
-                int id = res.getIdentifier(name, "drawable", "com.google.android.youtube");
-                if (id != 0) {
-                    try { return res.getDrawable(id); } catch (Exception ignored) {}
+    public static Drawable getDrawable(Resources resources, int id, Resources.Theme theme) {
+        if (id == 0) {
+            return getFallbackDrawable(resources, isToolbarMenuStack());
+        }
+        try {
+            return resources.getDrawable(id, theme);
+        } catch (Resources.NotFoundException ex) {
+            return getFallbackDrawable(resources, isToolbarMenuStack());
+        }
+    }
+
+    public static Drawable getDrawableForDensity(Resources resources, int id, int density) {
+        if (id == 0) {
+            return getFallbackDrawableForDensity(resources, density, isToolbarMenuStack());
+        }
+        try {
+            return resources.getDrawableForDensity(id, density);
+        } catch (Resources.NotFoundException ex) {
+            return getFallbackDrawableForDensity(resources, density, isToolbarMenuStack());
+        }
+    }
+
+    public static Drawable getDrawableForDensity(Resources resources, int id, int density, Resources.Theme theme) {
+        if (id == 0) {
+            return getFallbackDrawableForDensity(resources, density, theme, isToolbarMenuStack());
+        }
+        try {
+            return resources.getDrawableForDensity(id, density, theme);
+        } catch (Resources.NotFoundException ex) {
+            return getFallbackDrawableForDensity(resources, density, theme, isToolbarMenuStack());
+        }
+    }
+
+    // ---------------------------------------------------------
+    // BẢNG MAP ENUM CAIRO AN TOÀN (Giữ nguyên các tab chính)
+    // ---------------------------------------------------------
+    public static int getLegacyIconType(int iconType) {
+        switch (iconType) {
+            case 1154: return 406; // Home
+            case 1157: return 776; // Shorts
+            case 1155: return 408; // Subscriptions
+            case 1156: return 410; // Library / You
+            case 1160: return 181; // Create (+)
+            
+            // Các mã Cairo của Topbar (Tìm kiếm, Thông báo, Cài đặt, Cast)
+            // Nếu server trả về các mã này mà enum cũ không khớp, 
+            // ta trả về một giá trị an toàn hoặc để hệ thống tự xử lý qua tên.
+            case 1239: // Search Cairo ID
+            case 1161: // Bell Cairo ID
+            case 1021: // Cast Cairo ID
+            case 1162: // Settings Cairo ID
+                return iconType; 
+                
+            default:   
+                return iconType;
+        }
+    }
+
+    // ---------------------------------------------------------
+    // CƠ CHẾ FALLBACK DỰA TRÊN TÊN GỐC (DIRECT NAME RESOLUTION)
+    // ---------------------------------------------------------
+    private static Drawable getFallbackDrawable(Resources resources, boolean preferToolbarIcon) {
+        if (preferToolbarIcon) {
+            // Thay vì dùng danh sách chung chung, ta ưu tiên truy vấn thẳng tên icon gốc trong APK
+            String[] specificIcons = {
+                "yt_outline_search_black_24", 
+                "yt_outline_bell_black_24", 
+                "yt_outline_settings_black_24",
+                "quantum_ic_more_vert_black_24"
+            };
+            
+            for (String iconName : specificIcons) {
+                int fallbackId = findDrawableIdByName(resources, iconName);
+                if (fallbackId != 0) {
+                    try {
+                        return resources.getDrawable(fallbackId);
+                    } catch (Resources.NotFoundException ignored) {}
                 }
             }
         }
-        return null;
+
+        return new ColorDrawable(Color.TRANSPARENT);
     }
 
-    public static Drawable getDrawable(Resources res, int id) {
-        // Tuyệt đối không can thiệp trong 3 giây đầu tiên mở app để tránh crash
-        if (id == 0 && (System.currentTimeMillis() - APP_START_TIME > WARMUP_DELAY_MS)) {
-            Integer cairoId = PENDING_CAIRO_IDS.poll();
-            if (cairoId != null) {
-                Drawable d = getSafeDrawable(res, cairoId);
-                if (d != null) return d;
+    private static Drawable getFallbackDrawableForDensity(Resources resources, int density, boolean preferToolbarIcon) {
+        if (preferToolbarIcon) {
+            String[] specificIcons = {
+                "yt_outline_search_black_24", 
+                "yt_outline_bell_black_24", 
+                "yt_outline_settings_black_24",
+                "quantum_ic_more_vert_black_24"
+            };
+            
+            for (String iconName : specificIcons) {
+                int fallbackId = findDrawableIdByName(resources, iconName);
+                if (fallbackId != 0) {
+                    try {
+                        return resources.getDrawableForDensity(fallbackId, density);
+                    } catch (Resources.NotFoundException ignored) {}
+                }
             }
         }
-        try { return res.getDrawable(id); } catch (Exception e) { return null; }
+
+        return new ColorDrawable(Color.TRANSPARENT);
     }
 
-    public static Drawable getDrawable(Resources res, int id, Resources.Theme theme) {
-        if (id == 0 && (System.currentTimeMillis() - APP_START_TIME > WARMUP_DELAY_MS)) {
-            Integer cairoId = PENDING_CAIRO_IDS.poll();
-            if (cairoId != null) {
-                Drawable d = getSafeDrawable(res, cairoId);
-                if (d != null) return d;
+    private static Drawable getFallbackDrawableForDensity(Resources resources, int density, Resources.Theme theme, boolean preferToolbarIcon) {
+        if (preferToolbarIcon) {
+            String[] specificIcons = {
+                "yt_outline_search_black_24", 
+                "yt_outline_bell_black_24", 
+                "yt_outline_settings_black_24",
+                "quantum_ic_more_vert_black_24"
+            };
+            
+            for (String iconName : specificIcons) {
+                int fallbackId = findDrawableIdByName(resources, iconName);
+                if (fallbackId != 0) {
+                    try {
+                        return resources.getDrawableForDensity(fallbackId, density, theme);
+                    } catch (Resources.NotFoundException ignored) {}
+                }
             }
         }
-        try { return res.getDrawable(id, theme); } catch (Exception e) { return null; }
+
+        return new ColorDrawable(Color.TRANSPARENT);
+    }
+
+    private static int findDrawableIdByName(Resources resources, String name) {
+        for (String resourcePackage : RESOURCE_PACKAGES) {
+            int id = resources.getIdentifier(name, "drawable", resourcePackage);
+            if (id != 0) {
+                return id;
+            }
+        }
+        return 0;
+    }
+
+    private static boolean isToolbarMenuStack() {
+        for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
+            String methodName = element.getMethodName();
+            if ("onCreateOptionsMenu".equals(methodName) || "onCreatePanelMenu".equals(methodName) || methodName.contains("Toolbar")) {
+                return true;
+            }
+        }
+        return false;
     }
 }
