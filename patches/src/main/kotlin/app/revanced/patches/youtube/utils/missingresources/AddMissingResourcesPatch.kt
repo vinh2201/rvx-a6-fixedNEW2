@@ -119,6 +119,8 @@ val addMissingResourcesPatch = resourcePatch(
                 "yt_outline_subscriptions_cairo_black_24" to "@drawable/yt_outline_subscriptions_black_24",
                 "yt_fill_youtube_shorts_cairo_black_24" to "@drawable/yt_fill_youtube_shorts_black_24",
                 "yt_outline_youtube_shorts_cairo_black_24" to "@drawable/yt_outline_youtube_shorts_black_24",
+                "yt_fill_library_cairo_black_24" to "@drawable/yt_fill_library_black_24",
+                "yt_outline_library_cairo_black_24" to "@drawable/yt_outline_library_black_24",
                 "yt_fill_bell_cairo_black_24" to "@drawable/yt_fill_bell_black_24",
                 "yt_outline_bell_cairo_black_24" to "@drawable/yt_outline_bell_black_24",
 
