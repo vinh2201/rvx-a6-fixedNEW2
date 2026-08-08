@@ -124,12 +124,15 @@ val addMissingResourcesPatch = resourcePatch(
 
                 // Modern Shorts top-bar Cairo icon names. Keep 17.34.36's
                 // original white legacy Shorts glyphs instead of the 20.xx look.
+                "yt_fill_search_cairo_black_24" to "@drawable/yt_fill_search_black_24",
                 "yt_outline_search_cairo_black_24" to "@drawable/yt_outline_search_black_24",
+                "yt_fill_overflow_vertical_cairo_black_24" to "@drawable/yt_fill_overflow_vertical_black_24",
                 "yt_outline_overflow_vertical_cairo_black_24" to "@drawable/yt_outline_overflow_vertical_black_24",
                 "yt_fill_chromecast_cairo_black_24" to "@drawable/yt_fill_chromecast_black_24",
                 "yt_outline_chromecast_cairo_black_24" to "@drawable/yt_outline_chromecast_black_24",
                 "yt_fill_compass_cairo_black_24" to "@drawable/yt_fill_compass_black_24",
                 "yt_outline_compass_cairo_black_24" to "@drawable/yt_outline_compass_black_24",
+                "yt_fill_gear_cairo_black_24" to "@drawable/yt_fill_gear_black_24",
                 "yt_outline_gear_cairo_black_24" to "@drawable/yt_outline_gear_black_24",
                 "yt_outline_share_cairo_black_24" to "@drawable/yt_outline_share_black_24",
                 "yt_outline_arrow_left_cairo_black_24" to "@drawable/yt_outline_arrow_left_black_24",
@@ -174,6 +177,20 @@ val addMissingResourcesPatch = resourcePatch(
 
                 // LEGACY OLD FROM 17.34.36.
                 // Shorts player.
+                "youtube_shorts_like_outline_32dp" to "@drawable/ic_right_like_off_shadowed",
+                "youtube_shorts_like_fill_32dp" to "@drawable/ic_right_like_on_shadowed",
+                "youtube_shorts_thumbs_up_outline_28dp" to "@drawable/ic_right_like_off_shadowed",
+                "youtube_shorts_thumbs_up_fill_28dp" to "@drawable/ic_right_like_on_shadowed",
+                "youtube_shorts_dislike_outline_32dp" to "@drawable/ic_right_dislike_off_shadowed",
+                "youtube_shorts_dislike_fill_32dp" to "@drawable/ic_right_dislike_on_shadowed",
+                "youtube_shorts_thumbs_down_outline_28dp" to "@drawable/ic_right_dislike_off_shadowed",
+                "youtube_shorts_thumbs_down_fill_28dp" to "@drawable/ic_right_dislike_on_shadowed",
+                "youtube_shorts_comment_outline_28dp" to "@drawable/ic_right_comment_shadowed",
+                "youtube_shorts_comment_outline_32dp" to "@drawable/ic_right_comment_shadowed",
+                "youtube_shorts_share_outline_28dp" to "@drawable/ic_right_share_shadowed",
+                "youtube_shorts_share_outline_32dp" to "@drawable/ic_right_share_shadowed",
+                "youtube_shorts_remix_outline_28dp" to "@drawable/ic_remix_filled_white_shadowed",
+                "youtube_shorts_remix_outline_32dp" to "@drawable/ic_remix_filled_white_shadowed",
                 "ic_right_like_off_shadowed" to "@drawable/ic_right_like_off_32c",
                 "ic_right_like_on_shadowed" to "@drawable/ic_right_like_on_32c",
                 "ic_right_dislike_off_shadowed" to "@drawable/ic_right_dislike_off_32c",
