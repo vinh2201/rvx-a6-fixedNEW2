@@ -1,4 +1,4 @@
-package app.revanced.extension.youtube.patches.utils; // Nhớ đổi lại package name của bạn
+package app.revanced.extension.youtube.patches.utils;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -15,18 +15,14 @@ import java.util.Set;
 public final class MissingResourcesPatch {
     private static final String TAG = "YTIconDebug";
     
-    // Bộ nhớ chống spam log
     private static final Set<Integer> LOGGED_ICON_TYPES = Collections.synchronizedSet(new HashSet<>());
     private static final Set<Integer> LOGGED_DRAWABLE_IDS = Collections.synchronizedSet(new HashSet<>());
 
-    // CHIÊU BÀI TỐI THƯỢNG: Lưu lại số Cairo cuối cùng server vừa gọi
-    private static volatile int lastRequestedIconType = -1;
-
+    // Danh sách dự phòng chuẩn, KHÔNG có kính lúp ở đây!
     private static final String[] TOOLBAR_FALLBACK_DRAWABLES = {
             "quantum_ic_more_vert_black_24",
             "ic_more_vert_black_24",
-            "quantum_ic_more_vert_white_24",
-            "yt_outline_search_black_24"
+            "quantum_ic_more_vert_white_24"
     };
     
     private static final String[] RESOURCE_PACKAGES = {
@@ -35,14 +31,12 @@ public final class MissingResourcesPatch {
     };
 
     // ---------------------------------------------------------
-    // TRẠM 1: LƯU DẤU VẾT & CHUYỂN ĐỔI SỐ CŨ (NẾU BIẾT)
+    // TRẠM 1: CỖ MÁY THỜI GIAN (DỊCH CAIRO -> LEGACY)
     // ---------------------------------------------------------
     public static int getLegacyIconType(int iconType) {
-        lastRequestedIconType = iconType; // <--- LƯU LẠI VẾT CHÂN CỦA SERVER!
-
         if (LOGGED_ICON_TYPES.add(iconType)) {
-            if (iconType > 1000) Log.w(TAG, "📡 [SERVER GỌI SỐ MỚI] IconType Cairo: " + iconType);
-            else Log.d(TAG, "📡 [SERVER GỌI SỐ CŨ] IconType Legacy: " + iconType);
+            if (iconType > 1000) Log.w(TAG, "📡 [SERVER GỌI CAIRO] Số: " + iconType);
+            else Log.d(TAG, "📡 [SERVER GỌI LEGACY] Số: " + iconType);
         }
 
         switch (iconType) {
@@ -51,55 +45,27 @@ public final class MissingResourcesPatch {
             case 1155: return 408; // Subs
             case 1156: return 410; // Library
             case 1160: return 181; // Create (+)
-            case 1161: return 158; // Bell
-            case 1162: return 44;  // Settings
             
-            // Cứ kệ 1239 và 1021 rơi vào default, ta sẽ xử chúng nó ở Trạm 3!
+            // --- NHỮNG KẺ GÂY RỐI ĐÃ BỊ TÓM ---
+            case 1161: return 158; // Nút Chuông Thông báo (Bell)
+            case 1239: return 224; // Kính Lúp (Search)
+            case 1021: return 192; // Nút Cast (Truyền TV)
+            
+            case 1162: return 44;  // Settings
             default:
                 return iconType;
         }
     }
 
     // ---------------------------------------------------------
-    // TRẠM TỘT ĐỈNH (MỚI): ÉP THẲNG SỐ CAIRO THÀNH TÊN ẢNH
-    // ---------------------------------------------------------
-    private static Drawable resolveCairoToDrawable(Resources resources, int cairoType) {
-        String exactDrawableName = null;
-
-        if (cairoType == 1239) {
-            exactDrawableName = "yt_outline_search_black_24"; // Chốt đơn Kính lúp!
-        } else if (cairoType == 1021) {
-            exactDrawableName = "yt_outline_chromecast_black_24"; // Nghi vấn Cast (bạn check thử xem đúng không nhé)
-        }
-        // Tương lai lòi ra số lạ nào, bạn cứ vã thêm 'else if' vào đây, KHÔNG TRƯỢT ĐƯỢC!
-
-        if (exactDrawableName != null) {
-            int resId = findDrawableId(resources, new String[]{exactDrawableName});
-            if (resId != 0) {
-                try {
-                    Log.i(TAG, "🎯 [HACK THÀNH CÔNG] Đã ép số " + cairoType + " biến thành: " + exactDrawableName);
-                    return resources.getDrawable(resId);
-                } catch (Exception ignored) {}
-            }
-        }
-        return null;
-    }
-
-    // ---------------------------------------------------------
-    // TRẠM 2: VẼ ẢNH & ĐÁNH CHẶN LỖI ID = 0
+    // TRẠM 2: QUÉT TÊN FILE VÀ VẼ
     // ---------------------------------------------------------
     private static void logAppRequestName(Resources resources, int id) {
         if (id != 0 && LOGGED_DRAWABLE_IDS.add(id)) {
             try {
                 String name = resources.getResourceEntryName(id);
-                
-                // MỞ RỘNG LƯỚI QUÉT: Tóm gọn yt_, abc_, ic_ và cả quantum_
-                if (name.startsWith("yt_") || 
-                    name.startsWith("abc_") || 
-                    name.startsWith("ic_") || 
-                    name.startsWith("quantum_")) {
-                    
-                    Log.i(TAG, "🔎 [APP TÌM TÊN FILE] Đang vẽ icon tên: " + name + " (Mã ID: " + id + ")");
+                if (name.startsWith("yt_") || name.startsWith("abc_") || name.startsWith("ic_") || name.startsWith("quantum_")) {
+                    Log.i(TAG, "🔎 [APP VẼ FILE] Tên: " + name + " (ID: " + id + ")");
                 }
             } catch (Exception ignored) {}
         }
@@ -111,19 +77,13 @@ public final class MissingResourcesPatch {
 
     public static Drawable getDrawable(Context context, int id) {
         logAppRequestName(context.getResources(), id);
-        
-        // NẾU APP TÌM KHÔNG RA (ID = 0) -> GỌI HÀM ÉP HÌNH CỦA CHÚNG TA RA!
-        if (id == 0) {
-            Drawable forcedDrawable = resolveCairoToDrawable(context.getResources(), lastRequestedIconType);
-            if (forcedDrawable != null) return forcedDrawable;
-            return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
-        }
+        if (id == 0) return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
 
         try {
             return context.getDrawable(id);
         } catch (Resources.NotFoundException ex) {
             if (!LOGGED_DRAWABLE_IDS.contains(id)) {
-                Log.e(TAG, "💀 [CRASH TRƯỢT] Mất file ID: " + id + " -> Đang nhét icon dự phòng!");
+                Log.e(TAG, "💀 [MẤT FILE] App thèm khát ID: " + id + " nhưng không có trong APK!");
                 LOGGED_DRAWABLE_IDS.add(id);
             }
             return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
@@ -132,48 +92,28 @@ public final class MissingResourcesPatch {
 
     public static Drawable getDrawable(Resources resources, int id) {
         logAppRequestName(resources, id);
-        if (id == 0) {
-            Drawable forcedDrawable = resolveCairoToDrawable(resources, lastRequestedIconType);
-            if (forcedDrawable != null) return forcedDrawable;
-            return getFallbackDrawable(resources, isToolbarMenuStack());
-        }
-
+        if (id == 0) return getFallbackDrawable(resources, isToolbarMenuStack());
         try { return resources.getDrawable(id); } 
         catch (Resources.NotFoundException ex) { return getFallbackDrawable(resources, isToolbarMenuStack()); }
     }
 
     public static Drawable getDrawable(Resources resources, int id, Resources.Theme theme) {
         logAppRequestName(resources, id);
-        if (id == 0) {
-            Drawable forcedDrawable = resolveCairoToDrawable(resources, lastRequestedIconType);
-            if (forcedDrawable != null) return forcedDrawable;
-            return getFallbackDrawable(resources, isToolbarMenuStack());
-        }
-
+        if (id == 0) return getFallbackDrawable(resources, isToolbarMenuStack());
         try { return resources.getDrawable(id, theme); } 
         catch (Resources.NotFoundException ex) { return getFallbackDrawable(resources, isToolbarMenuStack()); }
     }
 
     public static Drawable getDrawableForDensity(Resources resources, int id, int density) {
         logAppRequestName(resources, id);
-        if (id == 0) {
-            Drawable forcedDrawable = resolveCairoToDrawable(resources, lastRequestedIconType);
-            if (forcedDrawable != null) return forcedDrawable;
-            return getFallbackDrawableForDensity(resources, density, isToolbarMenuStack());
-        }
-
+        if (id == 0) return getFallbackDrawable(resources, isToolbarMenuStack());
         try { return resources.getDrawableForDensity(id, density); } 
         catch (Resources.NotFoundException ex) { return getFallbackDrawableForDensity(resources, density, isToolbarMenuStack()); }
     }
 
     public static Drawable getDrawableForDensity(Resources resources, int id, int density, Resources.Theme theme) {
         logAppRequestName(resources, id);
-        if (id == 0) {
-            Drawable forcedDrawable = resolveCairoToDrawable(resources, lastRequestedIconType);
-            if (forcedDrawable != null) return forcedDrawable;
-            return getFallbackDrawableForDensity(resources, density, theme, isToolbarMenuStack());
-        }
-
+        if (id == 0) return getFallbackDrawable(resources, isToolbarMenuStack());
         try { return resources.getDrawableForDensity(id, density, theme); } 
         catch (Resources.NotFoundException ex) { return getFallbackDrawableForDensity(resources, density, theme, isToolbarMenuStack()); }
     }
