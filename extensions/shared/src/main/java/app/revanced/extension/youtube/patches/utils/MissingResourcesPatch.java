@@ -34,12 +34,34 @@ public final class MissingResourcesPatch {
         if (originalId == 0) return 0;
         try {
             String resName = resources.getResourceEntryName(originalId);
+            if (resName == null) return originalId;
+
+            // 1. ÁNH XẠ THỦ CÔNG CHO CÁC ICON CỨNG ĐẦU KHÔNG CÓ CHỮ _cairo_
+            String mappedLegacyName = null;
+            if (resName.contains("chromecast") || resName.contains("cast")) {
+                mappedLegacyName = "yt_outline_chromecast_black_24"; // Hoặc tên icon cast cũ tương ứng trong apk của bạn
+            } else if (resName.contains("reload") || resName.contains("sync") || resName.contains("refresh")) {
+                mappedLegacyName = "yt_outline_refresh_black_24"; // Hoặc tên icon refresh cũ
+            }
+
+            String[] packagesToSearch = { packageName, "com.google.android.youtube", null };
+
+            // Nếu có ánh xạ thủ công, thử tìm trước
+            if (mappedLegacyName != null) {
+                for (String pkg : packagesToSearch) {
+                    int legacyId = resources.getIdentifier(mappedLegacyName, "drawable", pkg);
+                    if (legacyId != 0) {
+                        Log.e("KhoaBug_Resource", "DA MAP THU CONG: " + resName + " -> " + mappedLegacyName);
+                        return legacyId;
+                    }
+                }
+            }
             
-            // Nếu YouTube gọi icon giao diện mới chứa _cairo_
-            if (resName != null && resName.contains("_cairo_")) {
-                String legacyResName = resName.replace("_cairo_", "_");
+            // 2. XỬ LÝ TỰ ĐỘNG CHO CÁC ICON CÓ CHỮ _cairo_ (Fix lỗi dính double underscore __)
+            if (resName.contains("_cairo_")) {
+                // Thay thế _cairo_ thành rỗng trước, rồi đổi _ black thành _black để tránh lỗi 2 dấu gạch dưới
+                String legacyResName = resName.replace("_cairo_", ""); 
                 
-                String[] packagesToSearch = { packageName, "com.google.android.youtube", null };
                 for (String pkg : packagesToSearch) {
                     int legacyId = resources.getIdentifier(legacyResName, "drawable", pkg);
                     if (legacyId != 0) {
