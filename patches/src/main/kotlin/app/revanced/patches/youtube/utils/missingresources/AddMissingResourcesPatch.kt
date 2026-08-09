@@ -67,14 +67,13 @@ private val addMissingResourcesBytecodePatch = bytecodePatch {
             )
         }
 
-        // 2. PHẪU THUẬT TẠI ĐÂY: Thay vì trả về null (0x0), gọi thẳng hàm Transparent/Fallback của Java!
+        // 2. HOÀN NGUYÊN HOOK CỦA KITADAI31 ĐỂ CỨU LOGO YOUTUBE!
         attributeResolverFingerprint.methodOrThrow().apply {
             addInstructionsWithLabels(
                 0,
                 """
                 if-nez p1, :original
-                invoke-static {p0}, $EXTENSION_CLASS_DESCRIPTOR->getTransparentDrawable(Landroid/content/Context;)Landroid/graphics/drawable/Drawable;
-                move-result-object v0
+                const/4 v0, 0x0
                 return-object v0
                 """,
                 ExternalLabel("original", getInstruction(0))

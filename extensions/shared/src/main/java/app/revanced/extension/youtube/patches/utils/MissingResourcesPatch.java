@@ -87,15 +87,20 @@ public final class MissingResourcesPatch {
         }
     }
 
-    public static int getLegacyIconType(int iconType) {
+        public static int getLegacyIconType(int iconType) {
         switch (iconType) {
             case 1154: return 406; // Trang chủ (Home)
-            case 1157: return 776; // Shorts
             case 1155: return 408; // Kênh đăng ký (Subscriptions)
             case 1156: return 410; // Thư viện / Bạn (Library / You)
+            case 1157: return 776; // Shorts
+            case 1158: 
+            case 1159: return 135; // Tìm kiếm (Search)
             case 1160: return 181; // Nút Tạo (+)
             case 1161: return 158; // Thông báo (Notifications)
             case 1162: return 44;  // Cài đặt (Settings)
+            case 1163:
+            case 1164: 
+            case 1165: return 67;  // Truyền (Cast)
             default:   return iconType;
         }
     }
