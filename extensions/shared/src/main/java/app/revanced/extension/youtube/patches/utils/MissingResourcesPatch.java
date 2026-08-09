@@ -23,11 +23,12 @@ public final class MissingResourcesPatch {
             null
     };
 
-    public static Drawable getDrawable(Context context, int id) {
-        if (id == 0) {
-            return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
-        }
+    public static Drawable getTransparentDrawable() {
+        return new ColorDrawable(Color.TRANSPARENT);
+    }
 
+    public static Drawable getDrawable(Context context, int id) {
+        if (id == 0) return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
         try {
             return context.getDrawable(id);
         } catch (Resources.NotFoundException ex) {
@@ -36,10 +37,7 @@ public final class MissingResourcesPatch {
     }
 
     public static Drawable getDrawable(Resources resources, int id) {
-        if (id == 0) {
-            return getFallbackDrawable(resources, isToolbarMenuStack());
-        }
-
+        if (id == 0) return getFallbackDrawable(resources, isToolbarMenuStack());
         try {
             return resources.getDrawable(id);
         } catch (Resources.NotFoundException ex) {
@@ -47,6 +45,16 @@ public final class MissingResourcesPatch {
         }
     }
 
+    public static Drawable getDrawable(Resources resources, int id, Resources.Theme theme) {
+        if (id == 0) return getFallbackDrawable(resources, isToolbarMenuStack());
+        try {
+            return resources.getDrawable(id, theme);
+        } catch (Resources.NotFoundException ex) {
+            return getFallbackDrawable(resources, isToolbarMenuStack());
+        }
+    }
+
+    // CHỈ MAP SETTINGS, KHÔNG MAP NAV BAR ENUMS ĐỂ GIỮ GIAO DIỆN CAIRO!
     public static int getLegacyIconType(int iconType) {
         return iconType == SETTINGS_CAIRO_ICON_TYPE
                 ? SETTINGS_ICON_TYPE
@@ -70,9 +78,7 @@ public final class MissingResourcesPatch {
         for (String name : names) {
             for (String resourcePackage : RESOURCE_PACKAGES) {
                 int id = resources.getIdentifier(name, "drawable", resourcePackage);
-                if (id != 0) {
-                    return id;
-                }
+                if (id != 0) return id;
             }
         }
         return 0;
@@ -86,9 +92,5 @@ public final class MissingResourcesPatch {
             }
         }
         return false;
-    }
-
-    private static Drawable getTransparentDrawable() {
-        return new ColorDrawable(Color.TRANSPARENT);
     }
 }
