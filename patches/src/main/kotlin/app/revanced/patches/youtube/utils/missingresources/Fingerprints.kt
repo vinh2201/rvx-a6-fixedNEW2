@@ -18,7 +18,9 @@ internal val legacyIconEnumConverterFingerprint = legacyFingerprint(
     name = "legacyIconEnumConverterFingerprint",
     parameters = listOf("I"),
     customFingerprint = { method, classDef ->
-        // Loại bỏ hardcode class name 'Lajft;', quét theo kiểu trả về Enum icon nếu có
-        method.name == "b" && method.parameterTypes == listOf("I") && classDef.visibility.isPublic
+        // Sửa lại cách check public class qua accessFlags
+        method.name == "b" && 
+        method.parameterTypes == listOf("I") && 
+        AccessFlags.PUBLIC.isSet(classDef.accessFlags)
     }
 )
