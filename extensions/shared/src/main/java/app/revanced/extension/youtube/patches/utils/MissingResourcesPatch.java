@@ -1,4 +1,4 @@
-package app.revanced.extension.youtube.patches.utils;
+package app.revanced.extension.youtube.patches.utils; // TODO: Đổi package name này cho khớp với project Kitadai31 của bạn
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -23,12 +23,15 @@ public final class MissingResourcesPatch {
             null
     };
 
-    public static Drawable getTransparentDrawable() {
-        return new ColorDrawable(Color.TRANSPARENT);
+    public static Drawable getTransparentDrawable(Context context) {
+        return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
     }
 
     public static Drawable getDrawable(Context context, int id) {
-        if (id == 0) return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
+        if (id == 0) {
+            return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
+        }
+
         try {
             return context.getDrawable(id);
         } catch (Resources.NotFoundException ex) {
@@ -37,7 +40,10 @@ public final class MissingResourcesPatch {
     }
 
     public static Drawable getDrawable(Resources resources, int id) {
-        if (id == 0) return getFallbackDrawable(resources, isToolbarMenuStack());
+        if (id == 0) {
+            return getFallbackDrawable(resources, isToolbarMenuStack());
+        }
+
         try {
             return resources.getDrawable(id);
         } catch (Resources.NotFoundException ex) {
@@ -46,7 +52,10 @@ public final class MissingResourcesPatch {
     }
 
     public static Drawable getDrawable(Resources resources, int id, Resources.Theme theme) {
-        if (id == 0) return getFallbackDrawable(resources, isToolbarMenuStack());
+        if (id == 0) {
+            return getFallbackDrawable(resources, isToolbarMenuStack());
+        }
+
         try {
             return resources.getDrawable(id, theme);
         } catch (Resources.NotFoundException ex) {
@@ -54,11 +63,41 @@ public final class MissingResourcesPatch {
         }
     }
 
-    // CHỈ MAP SETTINGS, KHÔNG MAP NAV BAR ENUMS ĐỂ GIỮ GIAO DIỆN CAIRO!
+    public static Drawable getDrawableForDensity(Resources resources, int id, int density) {
+        if (id == 0) {
+            return getFallbackDrawableForDensity(resources, density, isToolbarMenuStack());
+        }
+
+        try {
+            return resources.getDrawableForDensity(id, density);
+        } catch (Resources.NotFoundException ex) {
+            return getFallbackDrawableForDensity(resources, density, isToolbarMenuStack());
+        }
+    }
+
+    public static Drawable getDrawableForDensity(Resources resources, int id, int density, Resources.Theme theme) {
+        if (id == 0) {
+            return getFallbackDrawableForDensity(resources, density, theme, isToolbarMenuStack());
+        }
+
+        try {
+            return resources.getDrawableForDensity(id, density, theme);
+        } catch (Resources.NotFoundException ex) {
+            return getFallbackDrawableForDensity(resources, density, theme, isToolbarMenuStack());
+        }
+    }
+
     public static int getLegacyIconType(int iconType) {
-        return iconType == SETTINGS_CAIRO_ICON_TYPE
-                ? SETTINGS_ICON_TYPE
-                : iconType;
+        switch (iconType) {
+            case 1154: return 406; // Trang chủ (Home)
+            case 1157: return 776; // Shorts
+            case 1155: return 408; // Kênh đăng ký (Subscriptions)
+            case 1156: return 410; // Thư viện / Bạn (Library / You)
+            case 1160: return 181; // Nút Tạo (+)
+            case 1161: return 158; // Thông báo (Notifications)
+            case 1162: return 44;  // Cài đặt (Settings)
+            default:   return iconType;
+        }
     }
 
     private static Drawable getFallbackDrawable(Resources resources, boolean preferToolbarIcon) {
@@ -68,9 +107,41 @@ public final class MissingResourcesPatch {
                 try {
                     return resources.getDrawable(fallbackId);
                 } catch (Resources.NotFoundException ignored) {
+                    // Fall through to transparent drawable.
                 }
             }
         }
+
+        return getTransparentDrawable();
+    }
+
+    private static Drawable getFallbackDrawableForDensity(Resources resources, int density, boolean preferToolbarIcon) {
+        if (preferToolbarIcon) {
+            int fallbackId = findDrawableId(resources, TOOLBAR_FALLBACK_DRAWABLES);
+            if (fallbackId != 0) {
+                try {
+                    return resources.getDrawableForDensity(fallbackId, density);
+                } catch (Resources.NotFoundException ignored) {
+                    // Fall through to transparent drawable.
+                }
+            }
+        }
+
+        return getTransparentDrawable();
+    }
+
+    private static Drawable getFallbackDrawableForDensity(Resources resources, int density, Resources.Theme theme, boolean preferToolbarIcon) {
+        if (preferToolbarIcon) {
+            int fallbackId = findDrawableId(resources, TOOLBAR_FALLBACK_DRAWABLES);
+            if (fallbackId != 0) {
+                try {
+                    return resources.getDrawableForDensity(fallbackId, density, theme);
+                } catch (Resources.NotFoundException ignored) {
+                    // Fall through to transparent drawable.
+                }
+            }
+        }
+
         return getTransparentDrawable();
     }
 
@@ -78,9 +149,12 @@ public final class MissingResourcesPatch {
         for (String name : names) {
             for (String resourcePackage : RESOURCE_PACKAGES) {
                 int id = resources.getIdentifier(name, "drawable", resourcePackage);
-                if (id != 0) return id;
+                if (id != 0) {
+                    return id;
+                }
             }
         }
+
         return 0;
     }
 
@@ -91,6 +165,11 @@ public final class MissingResourcesPatch {
                 return true;
             }
         }
+
         return false;
+    }
+
+    private static Drawable getTransparentDrawable() {
+        return new ColorDrawable(Color.TRANSPARENT);
     }
 }
