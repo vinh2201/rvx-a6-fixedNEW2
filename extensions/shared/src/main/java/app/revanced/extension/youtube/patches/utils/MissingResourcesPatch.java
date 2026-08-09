@@ -5,19 +5,17 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 
 @SuppressWarnings("unused")
 public final class MissingResourcesPatch {
-    private static final String TAG = "ReVancedIconLog";
-    
-    // Cầu nối tĩnh lưu lại Server IconType gần nhất vừa được gọi
-    private static volatile int lastServerIconType = -1;
+    private static final int SETTINGS_ICON_TYPE = 44;
+    private static final int SETTINGS_CAIRO_ICON_TYPE = 1162;
 
     private static final String[] TOOLBAR_FALLBACK_DRAWABLES = {
             "quantum_ic_more_vert_black_24",
             "ic_more_vert_black_24",
-            "quantum_ic_more_vert_white_24"
+            "quantum_ic_more_vert_white_24",
+            "yt_outline_search_black_24"
     };
     
     private static final String[] RESOURCE_PACKAGES = {
@@ -25,30 +23,11 @@ public final class MissingResourcesPatch {
             null
     };
 
-    private static void logDrawableInfo(Resources resources, int id, String contextName) {
-        boolean isToolbar = isToolbarMenuStack();
-        String toolbarFlag = isToolbar ? "[TOOLBAR]" : "[OTHER]";
-        
-        if (id == 0) {
-            Log.d(TAG, toolbarFlag + " [" + contextName + "] ID = 0 (Triggered Fallback) | Server IconType: " + lastServerIconType);
-            return;
-        }
-        try {
-            String resName = resources.getResourceEntryName(id);
-            Log.d(TAG, toolbarFlag + " [" + contextName + "] Requested ID: " + id 
-                    + " [Server IconType: " + lastServerIconType + "] | Resolved Name: " + resName);
-        } catch (Resources.NotFoundException e) {
-            Log.d(TAG, toolbarFlag + " [" + contextName + "] Requested ID: " + id 
-                    + " [Server IconType: " + lastServerIconType + "] | Resolved Name: (Not Found - lệch ID)");
-        }
-    }
-
     public static Drawable getTransparentDrawable(Context context) {
         return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
     }
 
     public static Drawable getDrawable(Context context, int id) {
-        logDrawableInfo(context.getResources(), id, "getDrawable_Context");
         if (id == 0) {
             return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
         }
@@ -61,7 +40,6 @@ public final class MissingResourcesPatch {
     }
 
     public static Drawable getDrawable(Resources resources, int id) {
-        logDrawableInfo(resources, id, "getDrawable_Resources");
         if (id == 0) {
             return getFallbackDrawable(resources, isToolbarMenuStack());
         }
@@ -74,7 +52,6 @@ public final class MissingResourcesPatch {
     }
 
     public static Drawable getDrawable(Resources resources, int id, Resources.Theme theme) {
-        logDrawableInfo(resources, id, "getDrawable_Theme");
         if (id == 0) {
             return getFallbackDrawable(resources, isToolbarMenuStack());
         }
@@ -87,7 +64,6 @@ public final class MissingResourcesPatch {
     }
 
     public static Drawable getDrawableForDensity(Resources resources, int id, int density) {
-        logDrawableInfo(resources, id, "getDrawableForDensity");
         if (id == 0) {
             return getFallbackDrawableForDensity(resources, density, isToolbarMenuStack());
         }
@@ -100,7 +76,6 @@ public final class MissingResourcesPatch {
     }
 
     public static Drawable getDrawableForDensity(Resources resources, int id, int density, Resources.Theme theme) {
-        logDrawableInfo(resources, id, "getDrawableForDensity_Theme");
         if (id == 0) {
             return getFallbackDrawableForDensity(resources, density, theme, isToolbarMenuStack());
         }
@@ -113,38 +88,14 @@ public final class MissingResourcesPatch {
     }
 
     public static int getLegacyIconType(int iconType) {
-        // Lưu vết Server IconType ngay khi app nhận được
-        lastServerIconType = iconType;
-        
-        int mappedType;
-        String label;
-        
         switch (iconType) {
-            case 1154: mappedType = 406; label = "Home (Trang chủ)"; break;
-            case 1157: mappedType = 776; label = "Shorts"; break;
-            case 1155: mappedType = 408; label = "Subscriptions (Kênh đăng ký)"; break;
-            case 1156: mappedType = 410; label = "Library / You (Thư viện)"; break;
-            case 1160: mappedType = 181; label = "Create (+) (Tạo)"; break;
-            case 1161: mappedType = 158; label = "Notifications (Thông báo)"; break;
-            case 1162: mappedType = 44;  label = "Settings (Cài đặt)"; break;
-            default:   
-                mappedType = iconType; 
-                label = "UNKNOWN / CHƯA XÁC ĐỊNH"; 
-                break;
+            case 1154: return 406; // Trang chủ (Home)
+            case 1157: return 776; // Shorts
+            case 1155: return 408; // Kênh đăng ký (Subscriptions)
+            case 967: return 410; // Thư viện / Bạn (Library / You)
+            case 1161: return 158; // Nút Tạo (+)
+            default:   return iconType;
         }
-        
-        Log.d(TAG, "[IconMapping] Type: " + iconType + " [" + label + "] -> Mapped Legacy: " + mappedType + " | IsToolbar: " + isToolbarMenuStack());
-
-        if (label.contains("UNKNOWN")) {
-            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-            StringBuilder sb = new StringBuilder("[CallStack Trace for Unknown IconType]: ");
-            for (int i = 3; i < Math.min(8, stackTrace.length); i++) {
-                sb.append("\n    -> ").append(stackTrace[i].getClassName()).append(".").append(stackTrace[i].getMethodName()).append("(").append(stackTrace[i].getLineNumber()).append(")");
-            }
-            Log.d(TAG, sb.toString());
-        }
-
-        return mappedType;
     }
 
     private static Drawable getFallbackDrawable(Resources resources, boolean preferToolbarIcon) {
@@ -153,9 +104,12 @@ public final class MissingResourcesPatch {
             if (fallbackId != 0) {
                 try {
                     return resources.getDrawable(fallbackId);
-                } catch (Resources.NotFoundException ignored) {}
+                } catch (Resources.NotFoundException ignored) {
+                    // Fall through to transparent drawable.
+                }
             }
         }
+
         return getTransparentDrawable();
     }
 
@@ -165,9 +119,12 @@ public final class MissingResourcesPatch {
             if (fallbackId != 0) {
                 try {
                     return resources.getDrawableForDensity(fallbackId, density);
-                } catch (Resources.NotFoundException ignored) {}
+                } catch (Resources.NotFoundException ignored) {
+                    // Fall through to transparent drawable.
+                }
             }
         }
+
         return getTransparentDrawable();
     }
 
@@ -177,9 +134,12 @@ public final class MissingResourcesPatch {
             if (fallbackId != 0) {
                 try {
                     return resources.getDrawableForDensity(fallbackId, density, theme);
-                } catch (Resources.NotFoundException ignored) {}
+                } catch (Resources.NotFoundException ignored) {
+                    // Fall through to transparent drawable.
+                }
             }
         }
+
         return getTransparentDrawable();
     }
 
@@ -192,6 +152,7 @@ public final class MissingResourcesPatch {
                 }
             }
         }
+
         return 0;
     }
 
@@ -202,6 +163,7 @@ public final class MissingResourcesPatch {
                 return true;
             }
         }
+
         return false;
     }
 
