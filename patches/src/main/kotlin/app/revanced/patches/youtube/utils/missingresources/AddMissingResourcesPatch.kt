@@ -55,7 +55,7 @@ private val addMissingResourcesBytecodePatch = bytecodePatch {
 
 private val addMissingResourcesBytecodePatch = bytecodePatch {
     execute {
-        // 1. Hook chống crash bằng file Java (Giữ nguyên của bạn)
+        // 1. Nâng cấp hook chống crash bằng file Java của Morphe (thay vì dùng ảnh transparent cứng)
         navigationBarGetDrawableFingerprint.methodOrThrow().apply {
             addInstructions(
                 0,
@@ -67,7 +67,7 @@ private val addMissingResourcesBytecodePatch = bytecodePatch {
             )
         }
 
-        // 2. HOÀN NGUYÊN HOOK CỦA KITADAI31 ĐỂ CỨU LOGO YOUTUBE!
+        // 2. GIỮ NGUYÊN hook attributeResolver của Kitadai31 để fix crash toolbar
         attributeResolverFingerprint.methodOrThrow().apply {
             addInstructionsWithLabels(
                 0,
@@ -80,7 +80,7 @@ private val addMissingResourcesBytecodePatch = bytecodePatch {
             )
         }
 
-        // 3. Hook convert Enum Icon để ép hiện icon cũ (Giữ nguyên của bạn)
+        // 3. THÊM hook convert Enum Icon của Morphe để ép hiện icon cũ
         legacyIconEnumConverterFingerprint.methodOrThrow().apply {
             addInstructions(
                 0,

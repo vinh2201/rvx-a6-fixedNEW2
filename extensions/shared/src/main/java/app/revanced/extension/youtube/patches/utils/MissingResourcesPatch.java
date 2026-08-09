@@ -5,9 +5,12 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.util.Log; // Thư viện Log của Android
 
 @SuppressWarnings("unused")
 public final class MissingResourcesPatch {
+    private static final String TAG = "ReVancedIconLog"; // Tag để lọc log trên cmd/powershell
+    
     private static final int SETTINGS_ICON_TYPE = 44;
     private static final int SETTINGS_CAIRO_ICON_TYPE = 1162;
 
@@ -23,11 +26,26 @@ public final class MissingResourcesPatch {
             null
     };
 
+    // Hàm hỗ trợ in log tên resource (ví dụ: yt_fill_home_black_24) từ ID
+    private static void logDrawableInfo(Resources resources, int id, String contextName) {
+        if (id == 0) {
+            Log.d(TAG, "[" + contextName + "] ID = 0 (Triggered Fallback)");
+            return;
+        }
+        try {
+            String resName = resources.getResourceEntryName(id);
+            Log.d(TAG, "[" + contextName + "] Requested ID: " + id + " | Resolved Name: " + resName);
+        } catch (Resources.NotFoundException e) {
+            Log.d(TAG, "[" + contextName + "] Requested ID: " + id + " | Resolved Name: (Not Found)");
+        }
+    }
+
     public static Drawable getTransparentDrawable(Context context) {
         return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
     }
 
     public static Drawable getDrawable(Context context, int id) {
+        logDrawableInfo(context.getResources(), id, "getDrawable_Context");
         if (id == 0) {
             return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
         }
@@ -40,6 +58,7 @@ public final class MissingResourcesPatch {
     }
 
     public static Drawable getDrawable(Resources resources, int id) {
+        logDrawableInfo(resources, id, "getDrawable_Resources");
         if (id == 0) {
             return getFallbackDrawable(resources, isToolbarMenuStack());
         }
@@ -52,6 +71,7 @@ public final class MissingResourcesPatch {
     }
 
     public static Drawable getDrawable(Resources resources, int id, Resources.Theme theme) {
+        logDrawableInfo(resources, id, "getDrawable_Theme");
         if (id == 0) {
             return getFallbackDrawable(resources, isToolbarMenuStack());
         }
@@ -64,6 +84,7 @@ public final class MissingResourcesPatch {
     }
 
     public static Drawable getDrawableForDensity(Resources resources, int id, int density) {
+        logDrawableInfo(resources, id, "getDrawableForDensity");
         if (id == 0) {
             return getFallbackDrawableForDensity(resources, density, isToolbarMenuStack());
         }
@@ -76,6 +97,7 @@ public final class MissingResourcesPatch {
     }
 
     public static Drawable getDrawableForDensity(Resources resources, int id, int density, Resources.Theme theme) {
+        logDrawableInfo(resources, id, "getDrawableForDensity_Theme");
         if (id == 0) {
             return getFallbackDrawableForDensity(resources, density, theme, isToolbarMenuStack());
         }
@@ -87,22 +109,21 @@ public final class MissingResourcesPatch {
         }
     }
 
-        public static int getLegacyIconType(int iconType) {
+    public static int getLegacyIconType(int iconType) {
+        int mappedType;
         switch (iconType) {
-            case 1154: return 406; // Trang chủ (Home)
-            case 1155: return 408; // Kênh đăng ký (Subscriptions)
-            case 1156: return 410; // Thư viện / Bạn (Library / You)
-            case 1157: return 776; // Shorts
-            case 1158: 
-            case 1159: return 135; // Tìm kiếm (Search)
-            case 1160: return 181; // Nút Tạo (+)
-            case 1161: return 158; // Thông báo (Notifications)
-            case 1162: return 44;  // Cài đặt (Settings)
-            case 1163:
-            case 1164: 
-            case 1165: return 67;  // Truyền (Cast)
-            default:   return iconType;
+            case 1154: mappedType = 406; break; // Trang chủ (Home)
+            case 1157: mappedType = 776; break; // Shorts
+            case 1155: mappedType = 408; break; // Kênh đăng ký (Subscriptions)
+            case 1156: mappedType = 410; break; // Thư viện / Bạn (Library / You)
+            case 1160: mappedType = 181; break; // Nút Tạo (+)
+            case 1161: mappedType = 158; break; // Thông báo (Notifications)
+            case 1162: mappedType = 44;  break; // Cài đặt (Settings)
+            default:   mappedType = iconType; break;
         }
+        
+        Log.d(TAG, "[getLegacyIconType] Server IconType: " + iconType + " -> Mapped to Legacy: " + mappedType);
+        return mappedType;
     }
 
     private static Drawable getFallbackDrawable(Resources resources, boolean preferToolbarIcon) {
@@ -116,7 +137,6 @@ public final class MissingResourcesPatch {
                 }
             }
         }
-
         return getTransparentDrawable();
     }
 
@@ -131,7 +151,6 @@ public final class MissingResourcesPatch {
                 }
             }
         }
-
         return getTransparentDrawable();
     }
 
@@ -146,7 +165,6 @@ public final class MissingResourcesPatch {
                 }
             }
         }
-
         return getTransparentDrawable();
     }
 
@@ -159,7 +177,6 @@ public final class MissingResourcesPatch {
                 }
             }
         }
-
         return 0;
     }
 
@@ -170,7 +187,6 @@ public final class MissingResourcesPatch {
                 return true;
             }
         }
-
         return false;
     }
 
