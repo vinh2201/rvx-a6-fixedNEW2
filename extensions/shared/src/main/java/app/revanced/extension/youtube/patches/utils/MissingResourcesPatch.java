@@ -5,11 +5,11 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.util.Log; // Thư viện Log của Android
+import android.util.Log;
 
 @SuppressWarnings("unused")
 public final class MissingResourcesPatch {
-    private static final String TAG = "ReVancedIconLog"; // Tag để lọc log trên cmd/powershell
+    private static final String TAG = "ReVancedIconLog";
     
     private static final int SETTINGS_ICON_TYPE = 44;
     private static final int SETTINGS_CAIRO_ICON_TYPE = 1162;
@@ -17,8 +17,8 @@ public final class MissingResourcesPatch {
     private static final String[] TOOLBAR_FALLBACK_DRAWABLES = {
             "quantum_ic_more_vert_black_24",
             "ic_more_vert_black_24",
-            "quantum_ic_more_vert_white_24",
-            "yt_outline_search_black_24"
+            "quantum_ic_more_vert_white_24"
+            // Đã lược bỏ yt_outline_search_black_24 để tránh lỗi thế chỗ vô duyên
     };
     
     private static final String[] RESOURCE_PACKAGES = {
@@ -26,17 +26,19 @@ public final class MissingResourcesPatch {
             null
     };
 
-    // Hàm hỗ trợ in log tên resource (ví dụ: yt_fill_home_black_24) từ ID
     private static void logDrawableInfo(Resources resources, int id, String contextName) {
+        boolean isToolbar = isToolbarMenuStack();
+        String toolbarFlag = isToolbar ? "[TOOLBAR]" : "[OTHER]";
+        
         if (id == 0) {
-            Log.d(TAG, "[" + contextName + "] ID = 0 (Triggered Fallback)");
+            Log.d(TAG, toolbarFlag + " [" + contextName + "] ID = 0 (Triggered Fallback)");
             return;
         }
         try {
             String resName = resources.getResourceEntryName(id);
-            Log.d(TAG, "[" + contextName + "] Requested ID: " + id + " | Resolved Name: " + resName);
+            Log.d(TAG, toolbarFlag + " [" + contextName + "] Requested ID: " + id + " | Resolved Name: " + resName);
         } catch (Resources.NotFoundException e) {
-            Log.d(TAG, "[" + contextName + "] Requested ID: " + id + " | Resolved Name: (Not Found)");
+            Log.d(TAG, toolbarFlag + " [" + contextName + "] Requested ID: " + id + " | Resolved Name: (Not Found - lệch ID)");
         }
     }
 
@@ -122,7 +124,7 @@ public final class MissingResourcesPatch {
             default:   mappedType = iconType; break;
         }
         
-        Log.d(TAG, "[getLegacyIconType] Server IconType: " + iconType + " -> Mapped to Legacy: " + mappedType);
+        Log.d(TAG, "[getLegacyIconType] IsToolbar: " + isToolbarMenuStack() + " | Server IconType: " + iconType + " -> Mapped to Legacy: " + mappedType);
         return mappedType;
     }
 
@@ -132,9 +134,7 @@ public final class MissingResourcesPatch {
             if (fallbackId != 0) {
                 try {
                     return resources.getDrawable(fallbackId);
-                } catch (Resources.NotFoundException ignored) {
-                    // Fall through to transparent drawable.
-                }
+                } catch (Resources.NotFoundException ignored) {}
             }
         }
         return getTransparentDrawable();
@@ -146,9 +146,7 @@ public final class MissingResourcesPatch {
             if (fallbackId != 0) {
                 try {
                     return resources.getDrawableForDensity(fallbackId, density);
-                } catch (Resources.NotFoundException ignored) {
-                    // Fall through to transparent drawable.
-                }
+                } catch (Resources.NotFoundException ignored) {}
             }
         }
         return getTransparentDrawable();
@@ -160,9 +158,7 @@ public final class MissingResourcesPatch {
             if (fallbackId != 0) {
                 try {
                     return resources.getDrawableForDensity(fallbackId, density, theme);
-                } catch (Resources.NotFoundException ignored) {
-                    // Fall through to transparent drawable.
-                }
+                } catch (Resources.NotFoundException ignored) {}
             }
         }
         return getTransparentDrawable();
