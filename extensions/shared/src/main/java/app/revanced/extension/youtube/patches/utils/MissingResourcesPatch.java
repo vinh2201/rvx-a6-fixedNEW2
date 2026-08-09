@@ -11,14 +11,13 @@ import android.util.Log;
 public final class MissingResourcesPatch {
     private static final String TAG = "ReVancedIconLog";
     
-    private static final int SETTINGS_ICON_TYPE = 44;
-    private static final int SETTINGS_CAIRO_ICON_TYPE = 1162;
+    // Cầu nối tĩnh lưu lại Server IconType gần nhất vừa được gọi
+    private static volatile int lastServerIconType = -1;
 
     private static final String[] TOOLBAR_FALLBACK_DRAWABLES = {
             "quantum_ic_more_vert_black_24",
             "ic_more_vert_black_24",
             "quantum_ic_more_vert_white_24"
-            // Đã lược bỏ yt_outline_search_black_24 để tránh lỗi thế chỗ vô duyên
     };
     
     private static final String[] RESOURCE_PACKAGES = {
@@ -31,14 +30,16 @@ public final class MissingResourcesPatch {
         String toolbarFlag = isToolbar ? "[TOOLBAR]" : "[OTHER]";
         
         if (id == 0) {
-            Log.d(TAG, toolbarFlag + " [" + contextName + "] ID = 0 (Triggered Fallback)");
+            Log.d(TAG, toolbarFlag + " [" + contextName + "] ID = 0 (Triggered Fallback) | Server IconType: " + lastServerIconType);
             return;
         }
         try {
             String resName = resources.getResourceEntryName(id);
-            Log.d(TAG, toolbarFlag + " [" + contextName + "] Requested ID: " + id + " | Resolved Name: " + resName);
+            Log.d(TAG, toolbarFlag + " [" + contextName + "] Requested ID: " + id 
+                    + " [Server IconType: " + lastServerIconType + "] | Resolved Name: " + resName);
         } catch (Resources.NotFoundException e) {
-            Log.d(TAG, toolbarFlag + " [" + contextName + "] Requested ID: " + id + " | Resolved Name: (Not Found - lệch ID)");
+            Log.d(TAG, toolbarFlag + " [" + contextName + "] Requested ID: " + id 
+                    + " [Server IconType: " + lastServerIconType + "] | Resolved Name: (Not Found - lệch ID)");
         }
     }
 
@@ -112,19 +113,37 @@ public final class MissingResourcesPatch {
     }
 
     public static int getLegacyIconType(int iconType) {
+        // Lưu vết Server IconType ngay khi app nhận được
+        lastServerIconType = iconType;
+        
         int mappedType;
+        String label;
+        
         switch (iconType) {
-            case 1154: mappedType = 406; break; // Trang chủ (Home)
-            case 1157: mappedType = 776; break; // Shorts
-            case 1155: mappedType = 408; break; // Kênh đăng ký (Subscriptions)
-            case 1156: mappedType = 410; break; // Thư viện / Bạn (Library / You)
-            case 1160: mappedType = 181; break; // Nút Tạo (+)
-            case 1161: mappedType = 158; break; // Thông báo (Notifications)
-            case 1162: mappedType = 44;  break; // Cài đặt (Settings)
-            default:   mappedType = iconType; break;
+            case 1154: mappedType = 406; label = "Home (Trang chủ)"; break;
+            case 1157: mappedType = 776; label = "Shorts"; break;
+            case 1155: mappedType = 408; label = "Subscriptions (Kênh đăng ký)"; break;
+            case 1156: mappedType = 410; label = "Library / You (Thư viện)"; break;
+            case 1160: mappedType = 181; label = "Create (+) (Tạo)"; break;
+            case 1161: mappedType = 158; label = "Notifications (Thông báo)"; break;
+            case 1162: mappedType = 44;  label = "Settings (Cài đặt)"; break;
+            default:   
+                mappedType = iconType; 
+                label = "UNKNOWN / CHƯA XÁC ĐỊNH"; 
+                break;
         }
         
-        Log.d(TAG, "[getLegacyIconType] IsToolbar: " + isToolbarMenuStack() + " | Server IconType: " + iconType + " -> Mapped to Legacy: " + mappedType);
+        Log.d(TAG, "[IconMapping] Type: " + iconType + " [" + label + "] -> Mapped Legacy: " + mappedType + " | IsToolbar: " + isToolbarMenuStack());
+
+        if (label.contains("UNKNOWN")) {
+            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+            StringBuilder sb = new StringBuilder("[CallStack Trace for Unknown IconType]: ");
+            for (int i = 3; i < Math.min(8, stackTrace.length); i++) {
+                sb.append("\n    -> ").append(stackTrace[i].getClassName()).append(".").append(stackTrace[i].getMethodName()).append("(").append(stackTrace[i].getLineNumber()).append(")");
+            }
+            Log.d(TAG, sb.toString());
+        }
+
         return mappedType;
     }
 
