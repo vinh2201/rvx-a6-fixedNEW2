@@ -94,7 +94,7 @@ public final class MissingResourcesPatch {
             case 1155: return 408; // Kênh đăng ký (Subscriptions)
             case 1156: return 410; // Thư viện / Bạn (Library / You)
             case 1160: return 181; // Nút Tạo (+)
-            case 1161: return 158; // Thông báo (Notifications)
+            // case 1161: return 158; // Thông báo (Notifications)
             // case 1162: return 44;  // Cài đặt (Settings)
             default:   return iconType;
         }
