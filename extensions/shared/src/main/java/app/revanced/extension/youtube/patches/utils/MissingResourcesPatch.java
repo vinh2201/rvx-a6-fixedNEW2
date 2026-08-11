@@ -82,7 +82,7 @@ public final class MissingResourcesPatch {
 
             case 158: mappedType = 158; break; // logo
 
-            case 158:
+            case 181:
             case 192:
             case 967:
                 mappedType = iconType; // Tạm thời để nguyên để nó đi qua
