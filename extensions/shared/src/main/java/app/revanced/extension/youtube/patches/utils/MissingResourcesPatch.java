@@ -138,9 +138,9 @@ public final class MissingResourcesPatch {
 
         String targetName = null;
         switch (serverType) {
-            case 181:  targetName = "yt_outline_search_black_24"; break;
-            case 192:  targetName = "yt_outline_bell_black_24"; break;
-            case 1161: targetName = "yt_outline_plus_black_24"; break;
+            case 181:  targetName = "yt_outline_search_cairo_black_24"; break;
+            case 192:  targetName = "yt_outline_bell_cairo_black_24"; break;
+            case 1161: targetName = "yt_outline_add_circle_cairo_black_36"; break;
             case 1154: targetName = "yt_outline_home_black_24"; break;
             case 1157: targetName = "yt_outline_youtube_shorts_black_24"; break;
             case 1155: targetName = "yt_outline_subscriptions_black_24"; break;
