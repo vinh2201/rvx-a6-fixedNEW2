@@ -14,7 +14,7 @@ import java.lang.reflect.Method;
 public final class MissingResourcesPatch {
     private static final String TAG = "ReVancedIconLog";
     
-    // VŨ KHÍ BÍ MẬT: MÓC NỐI ICON_TYPE VÀ DRAWABLE
+    // CHỈ THEO DÕI ĐÚNG NHỮNG THẰNG CẦN THIẾT, CÒN LẠI THẢ TỰ DO
     private static final ThreadLocal<Integer> lastIconTypeTracker = new ThreadLocal<>();
 
     private static final String[] TOOLBAR_FALLBACK_DRAWABLES = {
@@ -28,10 +28,6 @@ public final class MissingResourcesPatch {
             null
     };
 
-    // =========================================================================
-    // VŨ KHÍ 1: TRUY VẾT SÂU HÀNG CHỜ
-    // =========================================================================
-    
     private static String getDeepCallerInfo() {
         StackTraceElement[] stack = Thread.currentThread().getStackTrace();
         StringBuilder trace = new StringBuilder();
@@ -56,43 +52,33 @@ public final class MissingResourcesPatch {
     }
 
     // =========================================================================
-    // VŨ KHÍ 2: ÁNH XẠ TRỰC TIẾP TÊN RESOURCE TỪ SERVER ICON TYPE
+    // LỌC CHUẨN XÁC: CHỈ GẮN KẾT CHO CÁC CASE ID ĐIỀU HƯỚNG, CÒN LẠI THẢ TỰ DO
     // =========================================================================
-
     public static int getLegacyIconType(int iconType) {
-        lastIconTypeTracker.set(iconType);
-
         int mappedType;
-        boolean isMapped = true;
+        boolean shouldTrack = true;
 
         switch (iconType) {
-            // --- CÁC NÚT ĐÃ CHUẨN ---
             case 1154: mappedType = 406; break; // Home
             case 1157: mappedType = 776; break; // Shorts
             case 1155: mappedType = 408; break; // Subscriptions
-            case 158:  mappedType = 158; break; // Logo YouTube -> Ổn định
-            case 0:    mappedType = 0;   break; // Cho qua
-
-            // --- BẺ LÁI TRỰC TIẾP CÁC NÚT ĐÃ XÁC ĐỊNH TỌA ĐỘ ---
-            case 181:  mappedType = 406; break; // Search (Bản lề qua Home cũ)
-            case 192:  mappedType = 776; break; // Chuông thông báo (Bản lề qua Shorts cũ)
-            case 1161: mappedType = 408; break; // Nút Tạo / Plus (Bản lề qua Subscriptions cũ)
-            
-            // --- CÁC NÚT KHÁC (KỆ HOẶC BỎ QUA) ---
-            case 1156: // Tab Bạn (You) - Trắng tinh kệ nó
-            case 967:  // Cast / Lạ
+            case 158:  mappedType = 158; break; // Logo YouTube
+            case 181:  mappedType = 406; break; // Search -> Mượn tạm Home
+            case 192:  mappedType = 776; break; // Chuông -> Mượn tạm Shorts
+            case 1161: mappedType = 408; break; // Nút Tạo -> Mượn tạm Subscriptions
             default:
-                mappedType = 0;
-                isMapped = false;
+                // Mọi icon khác trong app (lịch sử, tải xuống, v.v.): Trả về chính nó và THẢ TỰ DO!
+                mappedType = iconType;
+                shouldTrack = false;
                 break;
         }
 
-        String caller = getDeepCallerInfo();
-        if (isMapped) {
-            Log.i(TAG, "✅ [DIRECT_MAP] Server IconType: " + iconType + " -> Mapped Type: " + mappedType + " | Nguồn: " + caller);
+        if (shouldTrack) {
+            lastIconTypeTracker.set(iconType);
         } else {
-            Log.e(TAG, "🔥 [UNMAPPED_ENUM] SERVER BẮN ID MỚI: " + iconType + " | Nguồn: " + caller);
+            lastIconTypeTracker.remove(); // Xóa sạch dấu vết để không ảnh hưởng chỗ khác
         }
+
         return mappedType;
     }
 
@@ -141,51 +127,37 @@ public final class MissingResourcesPatch {
     }
 
     // =========================================================================
-    // HÀM ÉP DUYÊN TRỰC TIẾP: TRẢ VỀ ĐÚNG TÊN ICON THỰC TẾ TRONG APK
+    // ÉP ĐÚNG CHỖ, DÙNG XONG TIÊU HÓA NGAY LẬP TỨC
     // =========================================================================
     private static int getOverriddenDrawableId(Resources resources, int originalId) {
         Integer serverType = lastIconTypeTracker.get();
         if (serverType == null) return originalId;
 
+        // Tiêu hóa ngay lập tức để trả lại sự tự do cho các icon phía sau
+        lastIconTypeTracker.remove();
+
         String targetName = null;
         switch (serverType) {
-            case 181:  
-                targetName = "yt_outline_search_black_24"; // Kính lúp chuẩn
-                break;
-            case 192:  
-                targetName = "yt_outline_bell_black_24";   // Chuông chuẩn
-                break;
-            case 1161: 
-                targetName = "yt_outline_plus_black_24";  // Nút tạo dấu + chuẩn
-                break;
-            case 1154:
-                targetName = "yt_outline_home_black_24";
-                break;
-            case 1157:
-                targetName = "yt_outline_youtube_shorts_black_24";
-                break;
-            case 1155:
-                targetName = "yt_outline_subscriptions_black_24";
-                break;
-            default:
-                break;
+            case 181:  targetName = "yt_outline_search_black_24"; break;
+            case 192:  targetName = "yt_outline_bell_black_24"; break;
+            case 1161: targetName = "yt_outline_plus_black_24"; break;
+            case 1154: targetName = "yt_outline_home_black_24"; break;
+            case 1157: targetName = "yt_outline_youtube_shorts_black_24"; break;
+            case 1155: targetName = "yt_outline_subscriptions_black_24"; break;
+            default: break;
         }
 
         if (targetName != null) {
             for (String pkg : RESOURCE_PACKAGES) {
                 int customId = resources.getIdentifier(targetName, "drawable", pkg);
                 if (customId != 0) {
-                    return customId; // Tống thẳng ID thật vào mặt hệ thống!
+                    return customId; 
                 }
             }
         }
         return originalId;
     }
 
-    // =========================================================================
-    // CÁC HÀM GET DRAWABLE BẢN LỀ CỦA HỆ THỐNG
-    // =========================================================================
-    
     public static Drawable getTransparentDrawable(Context context) {
         return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
     }
@@ -201,17 +173,17 @@ public final class MissingResourcesPatch {
     public static Drawable getDrawable(Resources resources, int id) {
         int finalId = getOverriddenDrawableId(resources, id);
         logDrawableInfo(resources, finalId, "Resources");
-        if (finalId == 0) return getFallbackDrawable(resources, isToolbarMenuStack());
+        if (finalId == 0) return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
         try { return resources.getDrawable(finalId); } 
-        catch (Resources.NotFoundException ex) { return getFallbackDrawable(resources, isToolbarMenuStack()); }
+        catch (Resources.NotFoundException ex) { return getFallbackDrawable(context.getResources(), isToolbarMenuStack()); }
     }
 
     public static Drawable getDrawable(Resources resources, int id, Resources.Theme theme) {
         int finalId = getOverriddenDrawableId(resources, id);
         logDrawableInfo(resources, finalId, "Resources_Theme");
-        if (finalId == 0) return getFallbackDrawable(resources, isToolbarMenuStack());
+        if (finalId == 0) return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
         try { return resources.getDrawable(finalId, theme); } 
-        catch (Resources.NotFoundException ex) { return getFallbackDrawable(resources, isToolbarMenuStack()); }
+        catch (Resources.NotFoundException ex) { return getFallbackDrawable(context.getResources(), isToolbarMenuStack()); }
     }
 
     public static Drawable getDrawableForDensity(Resources resources, int id, int density) {
