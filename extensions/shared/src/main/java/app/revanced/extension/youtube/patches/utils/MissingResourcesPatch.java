@@ -75,23 +75,21 @@ public final class MissingResourcesPatch {
             case 1154: mappedType = 406; break; // Home
             case 1157: mappedType = 776; break; // Shorts
             case 1155: mappedType = 408; break; // Subscriptions
-            case 1156: mappedType = 410; break; // Library
+            case 158:  mappedType = 158; break; // Logo YouTube -> Ổn định
+            case 0:    mappedType = 0;   break; // Cho qua
 
-            case 1160: mappedType = 181; break; // Create
-            case 1161: mappedType = 158; break; // Notification
-
-            case 158: mappedType = 158; break; // logo
-
-            case 181:
-            case 192:
-            case 967:
-                mappedType = iconType; // Tạm thời để nguyên để nó đi qua
-                isMapped = false;
-                break;
-            case 0:
-                mappedType = 0; // Tạm thời để nguyên để nó đi qua
-                isMapped = true;
-                break;
+            // --- CÁC NÚT ĐANG TÀNG HÌNH (MAP CHẨN ĐOÁN) ---
+            // Mục đích: Nhét icon Home/Shorts/Subs vào để ép chúng phải hiện hình!
+        
+            // Cụm Bottom Bar
+            case 1160: mappedType = 406; break; // Dấu + -> Ép thành icon Home. (Xem giữa màn có mọc ra cái nhà ko)
+            case 1156: mappedType = 776; break; // Tab Bạn -> Ép thành icon Shorts.
+        
+            // Cụm Top Bar (Chuông, Search, Cast)
+            case 1161: mappedType = 408; break; // Chuông -> Ép thành icon Subs.
+            case 181:  mappedType = 406; break; // Bí ẩn 1 -> Ép thành icon Home.
+            case 192:  mappedType = 776; break; // Bí ẩn 2 -> Ép thành icon Shorts.
+            case 967:  mappedType = 408; break; // Bí ẩn 3 -> Ép thành icon Subs.
             default:
                 mappedType = iconType;
                 isMapped = false;
