@@ -62,9 +62,10 @@ public final class MissingResourcesPatch {
             case 1154: mappedType = 406; break; // Home
             case 1157: mappedType = 776; break; // Shorts
             case 1155: mappedType = 408; break; // Subscriptions
+            case 1156: mappedType = 967; break; // nút thông báo
             case 158:  mappedType = 158; break; // Logo YouTube
-            case 1160:  mappedType = 181; break; // Search -> Mượn tạm Home 1160
-            case 1161:  mappedType = 192; break; // Chuông -> Mượn tạm Shorts 1161
+            case 1160:  mappedType = 410; break; // chỗ nút tìm kiếm (cairo 1160, trỏ legacy 181 thành reload)
+            case 1161:  mappedType = 192; break; // nút tạo (map với legacy 192 thành nút playlist)
             default:
                 // Mọi icon khác trong app (lịch sử, tải xuống, v.v.): Trả về chính nó và THẢ TỰ DO!
                 mappedType = iconType;
