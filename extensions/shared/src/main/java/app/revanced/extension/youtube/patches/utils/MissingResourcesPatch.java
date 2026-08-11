@@ -63,9 +63,8 @@ public final class MissingResourcesPatch {
             case 1157: mappedType = 776; break; // Shorts
             case 1155: mappedType = 408; break; // Subscriptions
             case 158:  mappedType = 158; break; // Logo YouTube
-            case 181:  mappedType = 406; break; // Search -> Mượn tạm Home
-            case 192:  mappedType = 776; break; // Chuông -> Mượn tạm Shorts
-            case 1161: mappedType = 408; break; // Nút Tạo -> Mượn tạm Subscriptions
+            case 1160:  mappedType = 181; break; // Search -> Mượn tạm Home 1160
+            case 1161:  mappedType = 192; break; // Chuông -> Mượn tạm Shorts 1161
             default:
                 // Mọi icon khác trong app (lịch sử, tải xuống, v.v.): Trả về chính nó và THẢ TỰ DO!
                 mappedType = iconType;
