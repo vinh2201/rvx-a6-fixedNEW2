@@ -84,7 +84,7 @@ public final class MissingResourcesPatch {
             String resName = resources.getResourceEntryName(id);
             
             // 🚨 BẮT ĐÚNG MẤY THẰNG TOP BAR ĐỂ ĐÀO SÂU
-            if (resName.contains("search") || resName.contains("bell") || resName.contains("notif")) {
+            if (resName.contains("search") || resName.contains("bell") || resName.contains("overflow")) {
                 Log.e(TAG, "🚨 [TRÚNG MỤC TIÊU] Phát hiện đang load: '" + resName + "' | Hex ID: " + hexId);
                 // Phóng luồng sóng âm quét sâu xuống các class YouTube
                 Log.e(TAG, getDeepStackTrace());
