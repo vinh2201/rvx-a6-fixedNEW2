@@ -173,17 +173,19 @@ public final class MissingResourcesPatch {
     public static Drawable getDrawable(Resources resources, int id) {
         int finalId = getOverriddenDrawableId(resources, id);
         logDrawableInfo(resources, finalId, "Resources");
-        if (finalId == 0) return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
+        // ĐÃ SỬA context.getResources() THÀNH resources Ở DƯỚI ĐÂY
+        if (finalId == 0) return getFallbackDrawable(resources, isToolbarMenuStack());
         try { return resources.getDrawable(finalId); } 
-        catch (Resources.NotFoundException ex) { return getFallbackDrawable(context.getResources(), isToolbarMenuStack()); }
+        catch (Resources.NotFoundException ex) { return getFallbackDrawable(resources, isToolbarMenuStack()); }
     }
 
     public static Drawable getDrawable(Resources resources, int id, Resources.Theme theme) {
         int finalId = getOverriddenDrawableId(resources, id);
         logDrawableInfo(resources, finalId, "Resources_Theme");
-        if (finalId == 0) return getFallbackDrawable(context.getResources(), isToolbarMenuStack());
+        // ĐÃ SỬA context.getResources() THÀNH resources Ở DƯỚI ĐÂY
+        if (finalId == 0) return getFallbackDrawable(resources, isToolbarMenuStack());
         try { return resources.getDrawable(finalId, theme); } 
-        catch (Resources.NotFoundException ex) { return getFallbackDrawable(context.getResources(), isToolbarMenuStack()); }
+        catch (Resources.NotFoundException ex) { return getFallbackDrawable(resources, isToolbarMenuStack()); }
     }
 
     public static Drawable getDrawableForDensity(Resources resources, int id, int density) {
