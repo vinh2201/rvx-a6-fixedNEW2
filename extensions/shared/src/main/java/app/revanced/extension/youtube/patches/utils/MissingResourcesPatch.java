@@ -75,6 +75,23 @@ public final class MissingResourcesPatch {
             case 1154: mappedType = 406; break; // Home
             case 1157: mappedType = 776; break; // Shorts
             case 1155: mappedType = 408; break; // Subscriptions
+            case 1156: mappedType = 410; break; // Library
+
+            case 1160: mappedType = 181; break; // Create
+            case 1161: mappedType = 158; break; // Notification
+
+            case 158: mappedType = 158; break; // logo
+
+            case 158:
+            case 192:
+            case 967:
+                mappedType = iconType; // Tạm thời để nguyên để nó đi qua
+                isMapped = false;
+                break;
+            case 0:
+                mappedType = 0; // Tạm thời để nguyên để nó đi qua
+                isMapped = true;
+                break;
             default:
                 mappedType = iconType;
                 isMapped = false;
