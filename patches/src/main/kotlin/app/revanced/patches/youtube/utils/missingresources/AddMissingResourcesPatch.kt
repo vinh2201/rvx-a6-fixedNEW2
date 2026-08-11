@@ -123,6 +123,7 @@ val addMissingResourcesPatch = resourcePatch(
                 "yt_outline_library_cairo_black_24" to "@drawable/yt_outline_library_black_24",
                 "yt_fill_bell_cairo_black_24" to "@drawable/yt_fill_bell_black_24",
                 "yt_outline_bell_cairo_black_24" to "@drawable/yt_outline_bell_black_24",
+                "yt_outline_add_circle_cairo_black_36" to "@drawable/yt_outline_add_circle_black_36",
 
                 // Modern Shorts top-bar Cairo icon names. Keep 17.34.36's
                 // original white legacy Shorts glyphs instead of the 20.xx look.
