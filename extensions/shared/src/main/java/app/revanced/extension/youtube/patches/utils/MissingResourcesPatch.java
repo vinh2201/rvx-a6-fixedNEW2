@@ -38,17 +38,14 @@ public final class MissingResourcesPatch {
                 String targetResName = null;
 
                 // GÁN THẲNG ID MỚI -> TÊN FILE ẢNH (BỎ QUA TỪ ĐIỂN CỦA APP)
-                if (missingType == 1160 || missingType == 1239) {
-                    targetResName = "yt_outline_search_black_24";
+                if (missingType == 1160) {
+                    targetResName = "@drawable/yt_outline_search_black_24";
                 } 
                 else if (missingType == 1156) {
-                    targetResName = "yt_outline_bell_black_24";
+                    targetResName = "@drawable/yt_outline_bell_black_24";
                 } 
                 else if (missingType == 1161) {
-                    targetResName = "yt_outline_add_circle_cairo_black_36"; // Thay bằng tên file icon Create bác tìm được
-                }
-                else if (missingType == 967) {
-                    targetResName = "yt_outline_cast_black_24"; // Hoặc tên file icon Cast
+                    targetResName = "@drawable/yt_outline_add_circle_cairo_black_36"; // Thay bằng tên file icon Create bác tìm được
                 }
 
                 // NẾU TÌM THẤY TÊN FILE TƯƠNG ỨNG, ÉP XUẤT ẢNH RA!
